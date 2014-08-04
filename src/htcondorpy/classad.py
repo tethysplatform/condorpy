@@ -6,7 +6,6 @@ Created on Jul 30, 2014
 
 
 
-
 def parse(input):
     '''
     Parse input into a ClassAd. Returns a ClassAd object.
@@ -39,7 +38,10 @@ class ClassAd(object):
         in the new ClassAd format.
         '''
         
-        self.attributes = dict()
+        if str != None:
+            self.attributes = str
+        else:
+            self.attributes = dict()
         
         #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
@@ -58,9 +60,13 @@ class ClassAd(object):
         with square brackets and semicolons. For example, [ Foo = "bar"; ] may be returned.
         '''
         
-        return self.attributes.__str__()
+        list = ''
+        for key,value in self.attributes:
+            list += key + ' = ' + value + ';\n'
+        ad = '[ ' + list + ' ]'
+        return ad
         
-        raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+        #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
     def __repr__(self):
         return self.__str__()
@@ -118,7 +124,10 @@ class ClassAd(object):
     
     def setdefault(self, attr, value):
         '''
-        Behaves like the corresponding Python dictionary method. If called with an attribute, attr, that is not set, it will set the attribute to the specified value. It returns the value of the attribute. If called with an attribute that is already set, it does not change the object.
+        Behaves like the corresponding Python dictionary method. If called with 
+        an attribute, attr, that is not set, it will set the attribute to the 
+        specified value. It returns the value of the attribute. If called with 
+        an attribute that is already set, it does not change the object.
         '''
         
         raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
@@ -174,4 +183,19 @@ class ExprTree(object):
         Evaluate the expression and return as a ClassAd value, typically a Python object.
         '''
         raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+ 
+ 
+def unitTest():
+    ad = ClassAd()
+    print ad
+    ad = ClassAd({"foo":"bar"})
+    print ad
+    
+        
+if __name__ == "__main__":
+    unitTest()
+    
+
+
+    
             
