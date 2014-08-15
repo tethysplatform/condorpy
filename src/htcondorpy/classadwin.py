@@ -34,8 +34,8 @@ class ClassAd(object):
     
     def __init__(self, str=None):
         '''
-        Create a ClassAd object from string, str, passed as a parameter. The string must be formatted 
-        in the new ClassAd format.
+        Create a ClassAd object from string, str, passed as a parameter. 
+        The string must be formatted in the new ClassAd format.
         '''
         
         if str != None:
@@ -60,10 +60,13 @@ class ClassAd(object):
         with square brackets and semicolons. For example, [ Foo = "bar"; ] may be returned.
         '''
         
-        list = ''
-        for key,value in self.attributes:
-            list += key + ' = ' + value + ';\n'
-        ad = '[ ' + list + ' ]'
+        list = []
+        for key,value in self.attributes.iteritems():
+            list.append(key + ' = ' + value + ';')
+        if len(list) > 1:
+            ad = '[\n  ' + '\n  '.join(list) + '\n]'
+        else:
+            ad = '[ ' + ''.join(list) + ' ]'
         return ad
         
         #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
@@ -95,14 +98,15 @@ class ClassAd(object):
         
         raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
-    def get(self, attr, value):
+    def get(self, attr, value=None):
         '''
         Behaves like the corresponding Python dictionary method. Given the attr as key, returns either 
         the value of that key, or if the key is not in the object, returns None or the optional second 
         parameter when specified.
         '''
-        
-        raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+        return self.attributes.get(attr, value)
+    
+        #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
     def __getitem__(self, attr):
         '''
@@ -111,7 +115,9 @@ class ClassAd(object):
         ClassAd values will be returned as Python objects; ClassAd expressions will be returned as ExprTree objects.
         '''
         
-        raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+        return self.attributes.get(attr)
+    
+        #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
     def __setitem__(self, attr, value):
         '''
@@ -120,7 +126,8 @@ class ClassAd(object):
         ClassAd values will be returned as Python objects; ClassAd expressions will be returned as ExprTree objects.
         '''
         
-        raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+        self.attributes[attr] = value
+        #raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
     def setdefault(self, attr, value):
         '''
@@ -183,17 +190,30 @@ class ExprTree(object):
         Evaluate the expression and return as a ClassAd value, typically a Python object.
         '''
         raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+
+##########################################
+#
+#    Unit Tests
+#
+##########################################
+
+def runTests():    
+    print('testing')
+    # call tests here
+    test1()
+    #test2()
+    print('passed')
  
- 
-def unitTest():
+def test1():
     ad = ClassAd()
     print ad
     ad = ClassAd({"foo":"bar"})
     print ad
-    
+    ad.__setitem__('attr', 'value')
+    print ad
         
 if __name__ == "__main__":
-    unitTest()
+    runTests()
     
 
 

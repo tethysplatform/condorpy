@@ -5,6 +5,7 @@ Created on Aug 1, 2014
 '''
 
 import re, os, subprocess
+import classad_translation as translate
 
 
 def platform():
@@ -47,10 +48,19 @@ param = None
 #
 ##################
 def _writeJobFile(path, ad, count):
-        jobFile = open(os.path.join(path,'job.condor'))
-        jobFile.write(ad)
-        jobFile.wirte('Queue %d' % count)
-        return jobFile
+        jobFileName = os.path.join(path,'condor.job')
+        jobFile = open(jobFileName, 'w')
+        jobFile.write('\n'.join(_translate(ad)))
+        jobFile.write('\nqueue %d' % count)
+        jobFile.close()
+        return jobFileName
+
+def _translate(ad):
+    list = []
+    for k,v in ad.attributes.iteritems():
+        key, value = translate.toJob(k,v)
+        list.append(key + ' = ' + value)
+    return list
 
 def _enum(**enums):
     return type('Enum', (), enums)
@@ -92,13 +102,13 @@ class Schedd(object):
         '''
         
         if(action == JobAction.Remove):
-            args = ['condor_rm', job_spec] ##TODO job spec is assumed to be just the clusterID, but it need to be processed to be compatible
+            args = ['condor_rm', job_spec] ##TODO job_spec is assumed to be just the clusterID, but it need to be processed to be compatible
     
             process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
             out,err = process.communicate()
             print(out,err)
         else:
-            raise NotImplementedError("This acttion is not yet implemented")
+            raise NotImplementedError("This action is not yet implemented")
         
     def edit( self, job_spec, attr, value ):
         '''        
@@ -161,13 +171,14 @@ class Schedd(object):
         
         
         initdir = ad.get('Initdir')
-        
+        if not initdir:
+            initdir = os.getcwd()
         
         jobFile = _writeJobFile(initdir, ad, count)
         
         
         args = ['condor_submit', jobFile]
-    
+
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
         #print out,err

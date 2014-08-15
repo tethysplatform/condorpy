@@ -3,9 +3,17 @@ Created on May 23, 2014
 
 @author: sdc50
 '''
+try:
+    import htcondor
+except:
+    import htcondorwin as htcondor
 
-import htcondor
-import classad
+try:
+    import classad
+except:
+    import classadwin as classad
+    
+import classad_translation as translate
 
 class Job(object):
     '''
@@ -15,32 +23,27 @@ class Job(object):
     '''
     
 
-    def __init__(self, ad):
+    def __init__(self, ad=classad.ClassAd()):
         '''
         Constructor
         '''
-        self.setAd(ad)
+        self.ad = ad
         self.clusterId = None
         self.schedd = htcondor.Schedd()
         
-    def getAd(self, attr, value):
-        '''
+    def __str__(self):
+        return self.ad.__str__()
         
-        '''
-        pass
+    def __repr__(self):
+        return self.ad.__repr__()
     
-    def setAd(self, ad):
-        '''
-        
-        '''
-        self.ad = ad
         
     def submit(self, queue=1):
         '''
         
         '''
         
-        self.clusterId = self.schedd.submit(self.add, queue)
+        self.clusterId = self.schedd.submit(self.ad, queue)
         return self.clusterId
         
     def remove(self):
@@ -57,6 +60,59 @@ class Job(object):
         
         pass
     
-    
+    def status(self):
+        '''
+        '''
         
+        pass
+    
+    def get(self, attr, value=None):
+        '''
+        
+        '''
+        
+        adAttr,adValue = translate.toAd(attr,value)
+        
+        return self.ad.get(adAttr, value)
+        
+    def set(self, attr, value):
+        '''
+        
+        '''
+        
+        adAttr, adValue = translate.toAd(attr.lower(),value)
+        print adAttr
+        self.ad.__setitem__(adAttr, adValue)
+        
+        
+##########################################
+#
+#    Unit Tests
+#
+##########################################
+
+def runTests():    
+    print('testing')
+    # call tests here
+    test1()
+    testTemplates()
+    #test2()
+    print('passed')
+ 
+def test1():
+    job = Job()
+    job.set('executable', 'echo')
+    print(job)
+    
+def testTemplates():
+    print('Testing classad templates . . .')
+    import classad_templates as tmplt
+    job = Job(tmplt.ST_GSSHA)
+    print(job)
+    job.submit(2)
+    
+##def test2(): 
+    
+if __name__ == '__main__':
+    runTests()        
         

@@ -3,8 +3,9 @@ Created on Aug 4', ''2014
 
 @author: sdc50
 '''
+import re
 
-TRANSLATION_LIST = [
+ATTR_TRANSLATION_LIST = [
     # ( 'Absent', '' ),
     # ( 'AcctGroup', '' ),
     # ( 'AcctGroupUser', '' ),
@@ -61,6 +62,7 @@ TRANSLATION_LIST = [
     # ( 'EC2SecurityGroups', '' ),
     # ( 'EC2UserData', '' ),
     # ( 'EC2UserDataFile', '' ),
+      ( 'Err', 'error' ),
     # ( 'EmailAttributes', '' ),
     # ( 'EnteredCurrentStatus', '' ),
     # ( 'ExecutableSize', '' ),
@@ -81,6 +83,8 @@ TRANSLATION_LIST = [
     # ( 'HoldReasonSubCode', '' ),
     # ( 'HookKeyword', '' ),
     # ( 'ImageSize', '' ),
+      ( 'In', 'input' ),
+      ( 'Iwd', 'initialdir' ),
     # ( 'IwdFlushNFSCache', '' ),
     # ( 'JobAdInformationAttrs', '' ),
     # ( 'JobDescription', '' ),
@@ -149,7 +153,8 @@ TRANSLATION_LIST = [
     # ( 'RequestCpus', '' ),
     # ( 'RequestDisk', '' ),
     # ( 'RequestedChroot', '' ),
-    # ( 'RequestMemory', '' ),
+      ( 'RequestMemory', 'request_memory' ),
+      ( 'Requirements', 'requirements' ),
     # ( 'ResidentSetSize', '' ),
       ( 'ShouldTransferFiles', 'should_transfer_files' ),
     # ( 'StackSize', '' ),
@@ -162,7 +167,7 @@ TRANSLATION_LIST = [
     # ( 'SubmitterNegotiatingGroup', '' ),
     # ( 'TotalSuspensions', '' ),
     # ( 'TransferErr', '' ),
-    # ( 'TransferExecutable', '' ),
+      ( 'TransferExecutable', 'transfer_executable' ),
     # ( 'TransferIn', '' ),
     # ( 'TransferInputSizeMB', '' ),
     # ( 'TransferOut', '' ),
@@ -183,3 +188,87 @@ TRANSLATION_LIST = [
     # ( 'X509UserProxySubject', '' ),
     # ( 'X509UserProxyVOName', ''  )
     ]
+
+VALUE_TRANSLATION_LIST = [
+      ( '1', 'standard' ),
+      ( '5', 'vanilla' ),
+      ( '7', 'scheduler' ),
+      ( '8', 'MPI' ),
+      ( '9', 'grid' ),
+      ( '10', 'java' ),
+      ( '11', 'parallel' ),
+      ( '12', 'local' ),
+      ( '13', 'vm' ),
+      ]
+
+
+def makeTwoWayMapping(list):
+    dictAB = dict()
+    dictBA = dict()
+    for a, b in list:
+        dictAB[a] = b
+        dictBA[b] = a
+        
+    return dictAB, dictBA
+
+adAttrs, jobAttrs = makeTwoWayMapping(ATTR_TRANSLATION_LIST)
+adValues, jobValues = makeTwoWayMapping(VALUE_TRANSLATION_LIST)
+
+def toAd(attr,value=None):
+    '''
+    
+    '''
+    
+    adAttr = jobAttrs.get(attr)
+    if not adAttr:
+        adAttr = transformToAd(attr)
+    
+    newValue = adValues.get(value,value)
+    
+    return adAttr,newValue
+
+def toJob(adAttr, value=None):
+    '''
+    
+    '''
+    
+    attr = adAttrs.get(adAttr)
+    if not attr:
+        attr = transformToJob(adAttr)
+    
+    newValue = jobValues.get(value,value)
+    
+    return attr,newValue 
+
+
+def transformToJob(adAttr):
+    '''
+    '''
+    
+    words = [word.lower() for word in re.split('([A-Z][a-z\d]*)', adAttr) if word]
+    attr = '_'.join(words)
+    return attr
+
+def transformToAd(attr):
+    '''
+    '''
+    
+    adAttr = ''.join([word.capitalize() for word in attr.split('_')])
+    return adAttr
+
+
+##########################################
+#
+#    Unit Tests
+#
+##########################################
+
+def runTests():    
+    print('testing')
+    assert toAd('exe')[0] == 'Exe'
+    assert toJob('Cmd')[0] == 'executable'
+    assert toJob('ShouldTransferFiles')[0] == 'should_transfer_files'    
+    print('passed')
+    
+if __name__ == '__main__':
+    runTests()
