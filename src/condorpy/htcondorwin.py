@@ -186,9 +186,9 @@ class Schedd(object):
                 print err
             else:
                 raise Exception(err)
-        else:
-            cluster = re.split(' |\.',out)[-2]
-            return cluster
+            
+        cluster = re.split(' |\.',out)[-2]
+        return cluster
 
         #wait for job to finish
         #logFile = "%s/logs/condor.log" % (initdir) ##TODO - read logfile attribute from class ad
