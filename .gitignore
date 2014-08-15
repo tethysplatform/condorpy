@@ -9,4 +9,4 @@ submit.condor
 submit file commands
 src/condorpy/condor.job
 src/condorpy/test
-src/condorpy/test/condor.job
+src/condorpy/test/*
