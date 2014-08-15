@@ -25,11 +25,11 @@ class Job(object):
     '''
     
 
-    def __init__(self, ad=classad.ClassAd()):
+    def __init__(self, ad=None):
         '''
         Constructor
         '''
-        self.ad = ad
+        self.ad = ad if ad else classad.ClassAd()
         self.clusterId = None
         self.schedd = htcondor.Schedd()
         
@@ -48,17 +48,19 @@ class Job(object):
     def _makeJobDirs(self):
         initdir = self.ad.get('Iwd')
         self._makedir(initdir)
-        logdir = os.path.dirname(self.ad.get('UserLog'))
-        self._makedir(os.path.join(initdir,logdir))
+        log = self.ad.get('UserLog')
+        if log:
+            logdir = os.path.dirname(log)
+            self._makedir(os.path.join(initdir,logdir))
         
     def submit(self, queue=1):
         '''
         
-        
+        '''
         
         if not self.ad.get('Cmd'):
-            raise
-        '''
+            raise NoExecutable('You cannot submit a job without an executable')
+        
         
         self._makeJobDirs()
         
@@ -102,6 +104,9 @@ class Job(object):
         adAttr, adValue = translate.toAd(attr.lower(),value)
         self.ad.__setitem__(adAttr, adValue)
         
+class NoExecutable(Exception):
+    pass
+    
         
 ##########################################
 #
@@ -114,12 +119,15 @@ def runTests():
     # call tests here
     test1()
     testTemplates()
-    #test2()
+    noCmdTest()
     print('passed')
  
 def test1():
     job = Job()
+    print(job)
     job.set('executable', 'echo')
+    print(job)
+    job = Job()
     print(job)
     #job.submit()
     
@@ -129,9 +137,18 @@ def testTemplates():
     job = Job(tmplt.ST_GSSHA)
     job.set('initialdir','./test')
     print(job)
-    job.submit(2)
+    #job.submit(2)
     
-##def test2(): 
+def noCmdTest():
+    print('Testing no executable . . .')
+    
+    job = Job()
+    print(job)
+    try:
+        job.submit()
+        raise
+    except NoExecutable as e:
+        print str(e)
     
 if __name__ == '__main__':
     runTests()        
