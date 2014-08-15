@@ -182,8 +182,10 @@ class Schedd(object):
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
         if err:
-            print('err',err)
-            raise
+            if re.match('WARNING',err):
+                print err
+            else:
+                raise Exception(err)
         else:
             cluster = re.split(' |\.',out)[-2]
             return cluster
