@@ -62,7 +62,7 @@ class ClassAd(object):
         
         list = []
         for key,value in self.attributes.iteritems():
-            list.append(key + ' = ' + value + ';')
+            list.append(key + ' = ' + str(value) + ';')
         if len(list) > 1:
             ad = '[\n  ' + '\n  '.join(list) + '\n]'
         else:

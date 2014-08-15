@@ -59,7 +59,7 @@ def _translate(ad):
     list = []
     for k,v in ad.attributes.iteritems():
         key, value = translate.toJob(k,v)
-        list.append(key + ' = ' + value)
+        list.append(key + ' = ' + str(value))
     return list
 
 def _enum(**enums):

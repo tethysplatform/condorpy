@@ -13,9 +13,9 @@ except:
 
 #Spencer Taylor job for running GSSHA
 ST_GSSHA = classad.ClassAd({
-    'JobUniverse' : '5', #Vanilla
+    'JobUniverse' : 5, #Vanilla
     'Requirements' : '( Arch == \'X86_64\' && OpSys == \'WINDOWS\' )', #?
-    'RequestMemory' : '1200',
+    'RequestMemory' : 1200,
     'Out' : 'logs/..out',
     'Err' : 'logs/..err',
     'UserLog' : 'logs/condor.log',
