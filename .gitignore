@@ -8,4 +8,3 @@ list of submit file commands
 submit.condor
 submit file commands
 src/condorpy/condor.job
-src/condorpy/condor.job
