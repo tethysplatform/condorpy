@@ -269,6 +269,8 @@ def runTests():
     assert toJob('Cmd')[0] == 'executable'
     assert toJob('ShouldTransferFiles')[0] == 'should_transfer_files'
     assert toJob('JobUniverse',5) == ('universe','vanilla') 
+    assert toAd('initialdir')[0] == 'Iwd'
+    assert toJob('Iwd')[0] == 'initialdir'
       
     print('passed')
     

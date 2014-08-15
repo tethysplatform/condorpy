@@ -170,7 +170,7 @@ class Schedd(object):
         '''
         
         
-        initdir = ad.get('Initdir')
+        initdir = ad.get('Iwd')
         if not initdir:
             initdir = os.getcwd()
         

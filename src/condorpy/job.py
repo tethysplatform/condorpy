@@ -3,6 +3,7 @@ Created on May 23, 2014
 
 @author: sdc50
 '''
+
 try:
     import htcondor
 except:
@@ -14,6 +15,7 @@ except:
     import classadwin as classad
     
 import classad_translation as translate
+import os
 
 class Job(object):
     '''
@@ -37,11 +39,28 @@ class Job(object):
     def __repr__(self):
         return self.ad.__repr__()
     
+    def _makedir(self,dir):
+        try:
+            os.mkdir(dir)
+        except:
+            pass
+        
+    def _makeJobDirs(self):
+        initdir = self.ad.get('Iwd')
+        self._makedir(initdir)
+        logdir = os.path.dirname(self.ad.get('UserLog'))
+        self._makedir(os.path.join(initdir,logdir))
         
     def submit(self, queue=1):
         '''
         
+        
+        
+        if not self.ad.get('Cmd'):
+            raise
         '''
+        
+        self._makeJobDirs()
         
         self.clusterId = self.schedd.submit(self.ad, queue)
         return self.clusterId
@@ -102,11 +121,13 @@ def test1():
     job = Job()
     job.set('executable', 'echo')
     print(job)
+    #job.submit()
     
 def testTemplates():
     print('Testing classad templates . . .')
     import classad_templates as tmplt
     job = Job(tmplt.ST_GSSHA)
+    job.set('initialdir','./test')
     print(job)
     job.submit(2)
     
