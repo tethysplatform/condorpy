@@ -18,7 +18,7 @@ ST_GSSHA = classad.ClassAd({
     'RequestMemory' : '1200',
     'Out' : 'logs/..out',
     'Err' : 'logs/..err',
-    'UserLog' : 'C:\Users\htcondor\Desktop\StochasticGSSHA\Ben_79/Results1/logs/condor.log',
+    'UserLog' : 'logs/condor.log',
     'ShouldTransferFiles' : 'YES',
     'WhenToTransferOutput' : 'ON_EXIT_OR_EVICT'
     })

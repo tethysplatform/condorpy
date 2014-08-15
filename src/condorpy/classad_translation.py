@@ -190,15 +190,15 @@ ATTR_TRANSLATION_LIST = [
     ]
 
 VALUE_TRANSLATION_LIST = [
-      ( '1', 'standard' ),
-      ( '5', 'vanilla' ),
-      ( '7', 'scheduler' ),
-      ( '8', 'MPI' ),
-      ( '9', 'grid' ),
-      ( '10', 'java' ),
-      ( '11', 'parallel' ),
-      ( '12', 'local' ),
-      ( '13', 'vm' ),
+      ( 1, 'standard' ),
+      ( 5, 'vanilla' ),
+      ( 7, 'scheduler' ),
+      ( 8, 'MPI' ),
+      ( 9, 'grid' ),
+      ( 10, 'java' ),
+      ( 11, 'parallel' ),
+      ( 12, 'local' ),
+      ( 13, 'vm' ),
       ]
 
 
@@ -223,7 +223,7 @@ def toAd(attr,value=None):
     if not adAttr:
         adAttr = transformToAd(attr)
     
-    newValue = adValues.get(value,value)
+    newValue = jobValues.get(value,value)
     
     return adAttr,newValue
 
@@ -236,7 +236,7 @@ def toJob(adAttr, value=None):
     if not attr:
         attr = transformToJob(adAttr)
     
-    newValue = jobValues.get(value,value)
+    newValue = adValues.get(value,value)
     
     return attr,newValue 
 
@@ -267,7 +267,9 @@ def runTests():
     print('testing')
     assert toAd('exe')[0] == 'Exe'
     assert toJob('Cmd')[0] == 'executable'
-    assert toJob('ShouldTransferFiles')[0] == 'should_transfer_files'    
+    assert toJob('ShouldTransferFiles')[0] == 'should_transfer_files'
+    assert toJob('JobUniverse',5) == ('universe','vanilla') 
+      
     print('passed')
     
 if __name__ == '__main__':
