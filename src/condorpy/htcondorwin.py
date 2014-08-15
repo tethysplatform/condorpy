@@ -181,12 +181,12 @@ class Schedd(object):
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
-        #print out,err
-        cluster = re.split(' |\.',out)[-2]
-        print(out,err)
-        print(cluster)
-        
-        return cluster
+        if err:
+            print('err',err)
+            raise
+        else:
+            cluster = re.split(' |\.',out)[-2]
+            return cluster
 
         #wait for job to finish
         #logFile = "%s/logs/condor.log" % (initdir) ##TODO - read logfile attribute from class ad

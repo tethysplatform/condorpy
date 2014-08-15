@@ -120,6 +120,7 @@ def runTests():
     test1()
     testTemplates()
     noCmdTest()
+    condorErrorTest()
     print('passed')
  
 def test1():
@@ -148,6 +149,16 @@ def noCmdTest():
         job.submit()
         raise
     except NoExecutable as e:
+        print str(e)
+        
+def condorErrorTest():
+    print('Testing condor errors')
+    job = Job()
+    job.set('executable','job.py')
+    job.set('not_an_attr','foobar')
+    try:
+        job.submit()
+    except Exception as e:
         print str(e)
     
 if __name__ == '__main__':
