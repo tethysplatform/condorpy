@@ -1,3 +1,8 @@
 *.class
 *.pyc
 *.pyo
+adsdump
+classad job attributes
+list of submit file commands
+submit.condor
+submit file commands
