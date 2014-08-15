@@ -81,7 +81,6 @@ class Job(object):
         '''
         
         adAttr, adValue = translate.toAd(attr.lower(),value)
-        print adAttr
         self.ad.__setitem__(adAttr, adValue)
         
         
