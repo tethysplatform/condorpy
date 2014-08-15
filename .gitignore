@@ -1,6 +1,7 @@
 *.class
 *.pyc
 *.pyo
+.pydevproject
 adsdump
 classad job attributes
 list of submit file commands
