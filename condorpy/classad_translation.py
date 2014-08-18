@@ -236,7 +236,9 @@ def toJob(adAttr, value=None):
     if not attr:
         attr = transformToJob(adAttr)
     
-    newValue = adValues.get(value,value)
+    newValue = adValues.get(value)
+    if not newValue:
+        newValue = transformValueToJob(attr, value)
     
     return attr,newValue 
 
@@ -256,6 +258,11 @@ def transformToAd(attr):
     adAttr = ''.join([word.capitalize() for word in attr.split('_')])
     return adAttr
 
+def transformValueToJob(attr, value):
+    '''
+    '''
+    if(attr == 'requirements'):
+        return re.sub('\(|\)','',value)
 
 ##########################################
 #
@@ -271,6 +278,8 @@ def runTests():
     assert toJob('JobUniverse',5) == ('universe','vanilla') 
     assert toAd('initialdir')[0] == 'Iwd'
     assert toJob('Iwd')[0] == 'initialdir'
+    assert transformValueToJob('requirements', '( Arch == \'X86_64\' && OpSys == \'WINDOWS\' )') == ' Arch == \'X86_64\' && OpSys == \'WINDOWS\' '
+    assert transformValueToJob('requirements', "( Arch == 'X86_64' && OpSys == 'WINDOWS' ) && ( TARGET.Disk >= RequestDisk ) && ( TARGET.Memory >= RequestMemory ) && ( TARGET.HasFileTransfer )") == " Arch == 'X86_64' && OpSys == 'WINDOWS'  &&  TARGET.Disk >= RequestDisk  &&  TARGET.Memory >= RequestMemory  &&  TARGET.HasFileTransfer "
       
     print('passed')
     
