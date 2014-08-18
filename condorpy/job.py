@@ -7,12 +7,12 @@ Created on May 23, 2014
 try:
     import htcondor
 except:
-    import htcondorwin as htcondor
+    import pseudohtcondor as htcondor
 
 try:
     import classad
 except:
-    import classadwin as classad
+    import pseudoclassad as classad
     
 import classad_translation as translate
 import os

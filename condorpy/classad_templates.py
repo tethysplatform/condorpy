@@ -7,7 +7,7 @@ Created on Aug 4, 2014
 try:
     import classad
 except:
-    import classadwin as classad
+    import pseudoclassad as classad
 
 
 

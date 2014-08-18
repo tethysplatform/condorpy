@@ -1,3 +1,0 @@
-not_an_attr = foobar
-executable = job.py
-queue 1
