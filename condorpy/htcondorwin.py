@@ -183,7 +183,7 @@ class Schedd(object):
         out,err = process.communicate()
         if err:
             if re.match('WARNING',err):
-                print err
+                print(err)
             else:
                 raise Exception(err)
             

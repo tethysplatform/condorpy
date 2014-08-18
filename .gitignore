@@ -10,3 +10,5 @@ submit file commands
 src/condorpy/condor.job
 src/condorpy/test
 src/condorpy/test/*
+references
+activate
