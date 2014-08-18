@@ -263,6 +263,8 @@ def transformValueToJob(attr, value):
     '''
     if(attr == 'requirements'):
         return re.sub('\(|\)','',value)
+    else:
+        return value
 
 ##########################################
 #
