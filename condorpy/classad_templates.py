@@ -6,8 +6,8 @@ Created on Aug 4, 2014
 
 try:
     import classad
-except:
-    import pseudoclassad as classad
+except ImportError:
+    import condorpy.pseudoclassad as classad
 
 
 
