@@ -5,7 +5,7 @@ Created on Aug 1, 2014
 '''
 
 import re, os, subprocess
-import classad_translation as translate
+import condorpy.classad_translation as translate
 
 
 def platform():
@@ -72,7 +72,6 @@ JobAction = _enum(Remove=1, Hold=2)
 
 
 
-
 class Schedd(object):
     '''
     classdocs
@@ -101,7 +100,7 @@ class Schedd(object):
         job IDs or a string specifying a constraint to match jobs.
         '''
         
-        if(action == JobAction.Remove):
+        if(action is JobAction.Remove):
             args = ['condor_rm', job_spec] ##TODO job_spec is assumed to be just the clusterID, but it need to be processed to be compatible
     
             process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
