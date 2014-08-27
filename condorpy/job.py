@@ -29,7 +29,7 @@ class Job(object):
         """Constructor
 
         """
-        self.ad = ad if ad else classad.ClassAd()
+        self.ad = ad if ad is not None else classad.ClassAd()
         if ad:
             assert(self.ad is ad)
         self.cluster_id = None

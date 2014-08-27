@@ -4,7 +4,11 @@ Created on Jul 30, 2014
 @author: sdc50
 '''
 
-
+##########################################
+#
+#    Module Functions
+#
+##########################################
 
 def parse(input):
     '''
@@ -14,7 +18,7 @@ def parse(input):
     '''
     raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
     
-def parseOld():
+def parseOld(input):
     '''
     Parse old ClassAd format input into a ClassAd.
     '''
@@ -25,7 +29,12 @@ def version():
     Return the version of the linked ClassAd library.
     '''
     raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
-    
+
+##########################################
+#
+#    ClassAd Class
+#
+##########################################
     
 class ClassAd(object):
     '''
@@ -175,8 +184,7 @@ class ExprTree(object):
         '''
         Parse the string str to create an ExprTree.
         '''
-        
-        raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
+        pass
     
     def __str__(self):
         '''
@@ -190,32 +198,3 @@ class ExprTree(object):
         Evaluate the expression and return as a ClassAd value, typically a Python object.
         '''
         raise NotImplementedError("This method has not been implemented in the unofficial version of htcondor classad")
-
-##########################################
-#
-#    Unit Tests
-#
-##########################################
-
-def runTests():    
-    print('testing')
-    # call tests here
-    test1()
-    #test2()
-    print('passed')
- 
-def test1():
-    ad = ClassAd()
-    print ad
-    ad = ClassAd({"foo":"bar"})
-    print ad
-    ad.__setitem__('attr', 'value')
-    print ad
-        
-if __name__ == "__main__":
-    runTests()
-    
-
-
-    
-            

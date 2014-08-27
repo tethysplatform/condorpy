@@ -31,25 +31,80 @@ class JobTest(unittest.TestCase):
 
 
     def test_constructor(self):
+        """check initialization of instance variables
+
+        :return: None
+        """
+
+        #check that instance variables are instantiated with default constructor
         self.job = Job()
         self.assertIsInstance(self.job.ad,classad.ClassAd, 'ad must be instance of classad.Classad')
         self.assertIsNone(self.job.cluster_id,'cluster id should be set to None')
         self.assertIsInstance(self.job.schedd,htcondor.Schedd,'schedd must be an instance of htcondor.Schedd')
 
+        #check that classad with attributes is instantiated when passed to constructor
         ad = classad.ClassAd({'Foo':'Bar'})
         self.job = Job(ad)
         self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
 
-        '''
-        ad = None
-        if not ad:
-            ad = classad.ClassAd()
-        if not ad:
-            print 'why not?'
+        #check that classad without attributes is instantiated when passed to constructor
         assert(isinstance(ad,classad.ClassAd))
         self.job = Job(ad)
         self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
-        '''
+
+    def test_str(self):
+        pass
+
+    def test_make_job_dirs(self):
+        """
+
+        :return:
+        """
+
+        pass
+
+    def test_submit(self):
+        """
+
+        :return:
+        """
+
+        pass
+
+    def test_remove(self):
+        """docstring
+
+        """
+
+        pass
+
+    def test_edit(self):
+        """docstring
+
+        """
+
+        pass
+
+    def test_status(self):
+        """docstring
+
+        """
+
+        pass
+
+    def test_get(self):
+        """docstring
+
+        """
+
+        pass
+
+    def test_set(self):
+        """docstring
+
+        """
+
+        pass
 
 ##########################################
 #

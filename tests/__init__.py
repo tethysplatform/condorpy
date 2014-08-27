@@ -6,7 +6,7 @@ def runall():
     :rtype : None
     """
     allTests = unittest.TestLoader().discover('')
-    unittest.TextTestRunner(verbosity=2).run(allTests)
+    unittest.TextTestRunner(verbosity=1).run(allTests)
 
 if __name__ == "__main__":
     cov = coverage.coverage(branch=True, source=['condorpy'])
