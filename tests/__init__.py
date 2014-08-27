@@ -5,11 +5,12 @@ def runall():
     unittest.TextTestRunner(verbosity=2).run(allTests)
 
 if __name__ == "__main__":
-    cov = coverage.coverage(branch=True, source=['./condorpy'])
+    cov = coverage.coverage(branch=True, source=['condorpy'])
     cov.start()
 
     runall()
 
     cov.stop()
     cov.save()
-    cov.html_report()
+    #ov.html_report()
+    cov.report()

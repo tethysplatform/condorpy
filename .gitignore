@@ -2,8 +2,7 @@
 *.pyc
 *.pyo
 .pydevproject
-.coverage
+test/.coverage
 references
 activate
-htmlcov
 
