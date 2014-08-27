@@ -1,6 +1,10 @@
-import unittest, coverage
+import unittest, coverage, sys, time
 
 def runall():
+    """
+
+    :rtype : None
+    """
     allTests = unittest.TestLoader().discover('')
     unittest.TextTestRunner(verbosity=2).run(allTests)
 
@@ -12,5 +16,6 @@ if __name__ == "__main__":
 
     cov.stop()
     cov.save()
-    #ov.html_report()
+    #cov.html_report()
+    time.sleep(.1)  #because sys.stdout.flush() isn't working
     cov.report()

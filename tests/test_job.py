@@ -6,6 +6,16 @@ Created on Aug 22, 2014
 import unittest
 from condorpy import Job
 
+try:
+    import htcondor
+except ImportError:
+    import condorpy.pseudohtcondor as htcondor
+
+try:
+    import classad
+except ImportError:
+    import condorpy.pseudoclassad as classad
+
 def load_tests(loader, tests, pattern):
     return unittest.TestLoader().loadTestsFromTestCase(JobTest)
 
@@ -13,16 +23,33 @@ class JobTest(unittest.TestCase):
 
 
     def setUp(self):
-        pass
+        self.job = Job()
 
 
     def tearDown(self):
         pass
 
 
-    def test_Name(self):
-        self.assertEquals(1, 1, 'This was supposed to fail')
-        
+    def test_constructor(self):
+        self.job = Job()
+        self.assertIsInstance(self.job.ad,classad.ClassAd, 'ad must be instance of classad.Classad')
+        self.assertIsNone(self.job.cluster_id,'cluster id should be set to None')
+        self.assertIsInstance(self.job.schedd,htcondor.Schedd,'schedd must be an instance of htcondor.Schedd')
+
+        ad = classad.ClassAd({'Foo':'Bar'})
+        self.job = Job(ad)
+        self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
+
+        '''
+        ad = None
+        if not ad:
+            ad = classad.ClassAd()
+        if not ad:
+            print 'why not?'
+        assert(isinstance(ad,classad.ClassAd))
+        self.job = Job(ad)
+        self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
+        '''
 
 ##########################################
 #
