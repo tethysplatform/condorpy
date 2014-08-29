@@ -16,8 +16,8 @@ ST_GSSHA = classad.ClassAd({
     'JobUniverse' : 5, #Vanilla
     'Requirements' : '( Arch == \'X86_64\' && OpSys == \'WINDOWS\' )', #?
     'RequestMemory' : 1200,
-    'Out' : 'logs/..out',
-    'Err' : 'logs/..err',
+    'Out' : 'logs/$(cluster).$(process).out', #TODO: figure out macros in classads
+    'Err' : 'logs/$(cluster).$(process).err', #TODO:    '                 '
     'UserLog' : 'logs/condor.log',
     'ShouldTransferFiles' : 'YES',
     'WhenToTransferOutput' : 'ON_EXIT_OR_EVICT'
