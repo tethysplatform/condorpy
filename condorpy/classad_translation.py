@@ -262,7 +262,7 @@ def transformValueToJob(attr, value):
     '''
     '''
     if(attr == 'requirements'):
-        return re.sub('\(|\)','',value)
+        return re.sub('\'','\"',re.sub('\(|\)','',value))
     else:
         return value
 
@@ -280,8 +280,16 @@ def runTests():
     assert toJob('JobUniverse',5) == ('universe','vanilla') 
     assert toAd('initialdir')[0] == 'Iwd'
     assert toJob('Iwd')[0] == 'initialdir'
-    assert transformValueToJob('requirements', '( Arch == \'X86_64\' && OpSys == \'WINDOWS\' )') == ' Arch == \'X86_64\' && OpSys == \'WINDOWS\' '
-    assert transformValueToJob('requirements', "( Arch == 'X86_64' && OpSys == 'WINDOWS' ) && ( TARGET.Disk >= RequestDisk ) && ( TARGET.Memory >= RequestMemory ) && ( TARGET.HasFileTransfer )") == " Arch == 'X86_64' && OpSys == 'WINDOWS'  &&  TARGET.Disk >= RequestDisk  &&  TARGET.Memory >= RequestMemory  &&  TARGET.HasFileTransfer "
+
+    actual = transformValueToJob('requirements', '( Arch == \'X86_64\' && OpSys == \'WINDOWS\' )')
+    expected = ' Arch == "X86_64" && OpSys == "WINDOWS" '
+    print 'expected: %s, actual: %s' % (expected, actual)
+    assert expected == actual
+
+    actual = transformValueToJob('requirements', "( Arch == 'X86_64' && OpSys == 'WINDOWS' ) && ( TARGET.Disk >= RequestDisk ) && ( TARGET.Memory >= RequestMemory ) && ( TARGET.HasFileTransfer )")
+    expected = " Arch == \"X86_64\" && OpSys == \"WINDOWS\"  &&  TARGET.Disk >= RequestDisk  &&  TARGET.Memory >= RequestMemory  &&  TARGET.HasFileTransfer "
+    print 'expected:\t%s\nactual:\t\t%s' % (expected, actual)
+    assert expected == actual
       
     print('passed')
     

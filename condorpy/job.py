@@ -3,6 +3,9 @@ Created on May 23, 2014
 
 @author: sdc50
 '''
+#TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
+#TODO: figure out macros to get clusterid and process id for log files
+#TODO: print job to command line
 
 try:
     import htcondor
@@ -32,6 +35,7 @@ class Job(object):
         self.ad = ad if ad is not None else classad.ClassAd()
         if ad:
             assert(self.ad is ad)
+        self.num_jobs = 0
         self.cluster_id = None
         self.schedd = htcondor.Schedd()
 
@@ -76,10 +80,10 @@ class Job(object):
         if not self.ad.get('Cmd'):
             raise NoExecutable('You cannot submit a job without an executable')
 
-
         self._make_job_dirs()
 
         self.cluster_id = self.schedd.submit(self.ad, queue)
+        self.num_jobs = queue
         return self.cluster_id
 
     def remove(self):
