@@ -6,6 +6,7 @@ Created on May 23, 2014
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
 #TODO: figure out macros to get clusterid and process id for log files
 #TODO: print job to command line
+#TODO: write job file (submit description file) method in the job class
 
 try:
     import htcondor
@@ -21,11 +22,11 @@ import condorpy.classad_translation as translate
 import os
 
 class Job(object):
-    '''classdocs
+    """classdocs
 
     http://research.cs.wisc.edu/htcondor/manual/v7.8/condor_submit.html#man-condor-submit
 
-    '''
+    """
 
 
     def __init__(self, ad=None):
