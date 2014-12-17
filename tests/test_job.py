@@ -6,15 +6,6 @@ Created on Aug 22, 2014
 import unittest
 from condorpy import Job
 
-try:
-    import htcondor
-except ImportError:
-    import condorpy.pseudohtcondor as htcondor
-
-try:
-    import classad
-except ImportError:
-    import condorpy.pseudoclassad as classad
 
 def load_tests(loader, tests, pattern):
     return unittest.TestLoader().loadTestsFromTestCase(JobTest)
