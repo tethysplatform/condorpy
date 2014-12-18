@@ -153,7 +153,6 @@ class Job(object):
         out,err = process.communicate()
 
         if err:
-            print err
             if re.match('WARNING',err):
                 print(err)
             else:
@@ -258,10 +257,10 @@ class Job(object):
         value = self.get(attribute)
         if not value:
             return None
-        resolved_value = re.sub('\$\((.*?)\)',self._handle_attribute_match, value)
+        resolved_value = re.sub('\$\((.*?)\)',self._resolve_attribute_match, value)
         return resolved_value
 
-    def _handle_attribute_match(self, match):
+    def _resolve_attribute_match(self, match):
         """
 
         :param match:
