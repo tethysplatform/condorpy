@@ -4,9 +4,6 @@ Created on May 23, 2014
 @author: sdc50
 '''
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
-#TODO: figure out macros to get clusterid and process id for log files
-#TODO: print job to command line
-
 
 import os, subprocess, re
 
@@ -22,7 +19,8 @@ class Job(object):
         """Constructor
 
         """
-        assert isinstance(attributes, dict)
+        if attributes:
+            assert isinstance(attributes, dict)
         self._name = name
         self._attributes = attributes or dict()
         self.executable = executable
@@ -78,7 +76,6 @@ class Job(object):
         :param executable:
         :return:
         """
-        self._executable = executable
         self.set('executable', executable)
 
     @property
@@ -104,9 +101,9 @@ class Job(object):
 
         :return:
         """
-        self._log_file = self._attributes['log']
+        self._log_file = self._resolve_attribute('log')
         if not self._log_file:
-            self._log_file = "%s.log" % (self.name)
+            self._log_file = '%s.log' % (self.name)
         return self._log_file
 
     @property
@@ -123,7 +120,7 @@ class Job(object):
 
         :return:
         """
-        self._initial_dir = self._attributes['initialdir']
+        self._initial_dir = self._resolve_attribute('initialdir')
         if not self._initial_dir:
             self._initial_dir = os.getcwd()
         return self._initial_dir
@@ -135,7 +132,7 @@ class Job(object):
         :param initial_dir:
         :return:
         """
-        self._initial_dir = initial_dir
+        self.set('initialdir', initial_dir)
 
     def submit(self, queue=None, options=None):
         """docstring
@@ -198,7 +195,11 @@ class Job(object):
         """get attribute from job file
 
         """
-        return self._attributes[attr] or value
+        try:
+            value = self._attributes[attr]
+        except KeyError:
+            pass
+        return value
 
     def set(self, attr, value):
         """set attribute in job file
@@ -225,7 +226,7 @@ class Job(object):
     def _list_attributes(self):
         list = []
         for k,v in self._attributes.iteritems():
-            if str(v) != '':
+            if v:
                 list.append(k + ' = ' + str(v))
         return list
 
@@ -244,10 +245,29 @@ class Job(object):
 
         """
         self._make_dir(self.initial_dir)
-        #TODO: which log dirs should I create?
-        if self.log_file:
-            log_dir = os.path.dirname(self.log_file)
+        log_dir = self._resolve_attribute('logdir')
+        if log_dir:
             self._make_dir(os.path.join(self.initial_dir, log_dir))
+
+    def _resolve_attribute(self, attribute):
+        """
+
+        :return:
+        """
+        value = self.get(attribute)
+        if not value:
+            return None
+        resolved_value = re.sub('\$\((.*?)\)',self._handle_attribute_match, value)
+        return resolved_value
+
+    def _handle_attribute_match(self, match):
+        """
+
+        :param match:
+        :return:
+        """
+        return self.get(match.group(1), match.group(0))
+
 
 
 class NoExecutable(Exception):

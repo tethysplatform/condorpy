@@ -5,6 +5,7 @@ Created on Aug 22, 2014
 '''
 import unittest
 from condorpy import Job
+from condorpy import Templates
 
 
 def load_tests(loader, tests, pattern):
@@ -14,7 +15,7 @@ class TestJob(unittest.TestCase):
 
 
     def setUp(self):
-        self.job = Job()
+        self.job = Job('test')
 
 
     def tearDown(self):
@@ -28,6 +29,7 @@ class TestJob(unittest.TestCase):
         """
 
         #check that instance variables are instantiated with default constructor
+        '''
         self.job = Job()
         self.assertIsInstance(self.job.ad,classad.ClassAd, 'ad must be instance of classad.Classad')
         self.assertIsNone(self.job.cluster_id,'cluster id should be set to None')
@@ -42,6 +44,12 @@ class TestJob(unittest.TestCase):
         assert(isinstance(ad,classad.ClassAd))
         self.job = Job(ad)
         self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
+        '''
+
+    def test_resolve_attribute(self):
+        job = Job('test1', Templates.vanilla_base)
+        print job._resolve_attribute('error')
+        print job._resolve_attribute('not_there')
 
     def test_str(self):
         pass

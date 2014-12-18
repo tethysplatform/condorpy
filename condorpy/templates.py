@@ -22,7 +22,7 @@ class Templates(object):
         base['arguments'] = ''
         base['initialdir'] = '$(job_name)'
         base['logdir'] = 'logs'
-        base['log'] = '$(logsdir)/$(job_name).$(cluster).log'
+        base['log'] = '$(logdir)/$(job_name).$(cluster).log'
         base['output'] = '$(logdir)/$(job_name).$(cluster).$(process).out'
         base['error'] = '$(logdir)/$(job_name).$(cluster).$(process).err'
         return base
