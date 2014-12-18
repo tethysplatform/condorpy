@@ -1,4 +1,5 @@
 from job import Job
 from dag import DAG
 from dag import Node
-import templates
+from templates import Templates
+Templates = Templates()

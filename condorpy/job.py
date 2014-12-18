@@ -30,13 +30,14 @@ class Job(object):
         self._log_file = ""
         self._cluster_id = None
         self._initial_dir = os.getcwd()
+        self.set('job_name',self.name)
 
     def __str__(self):
         """docstring
 
         """
 
-        return '\n'.join(self._list_attributes()) + '\n\nqueue %d' % (self.num_jobs)
+        return '\n'.join(self._list_attributes()) + '\n\nqueue %d\n' % (self.num_jobs)
 
     def __repr__(self):
         """docstring
@@ -222,7 +223,8 @@ class Job(object):
     def _list_attributes(self):
         list = []
         for k,v in self._attributes.iteritems():
-            list.append(k + ' = ' + str(v))
+            if str(v) != '':
+                list.append(k + ' = ' + str(v))
         return list
 
     def _make_dir(self, dir_name):
