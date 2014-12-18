@@ -25,7 +25,7 @@ class Job(object):
         assert isinstance(attributes, dict)
         self._name = name
         self._attributes = attributes or dict()
-        self._executable = executable
+        self.executable = executable
         self._num_jobs = 1
         self._log_file = ""
         self._cluster_id = None
@@ -68,6 +68,7 @@ class Job(object):
 
         :return:
         """
+        self._executable = self.get('executable')
         return self._executable
 
     @executable.setter
@@ -78,6 +79,7 @@ class Job(object):
         :return:
         """
         self._executable = executable
+        self.set('executable', executable)
 
     @property
     def num_jobs(self):
