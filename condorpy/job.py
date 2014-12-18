@@ -153,6 +153,7 @@ class Job(object):
         out,err = process.communicate()
 
         if err:
+            print err
             if re.match('WARNING',err):
                 print(err)
             else:
