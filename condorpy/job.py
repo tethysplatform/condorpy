@@ -36,13 +36,13 @@ class Job(object):
 
         """
 
-        return self.ad.__str__()
+        return '\n'.join(self._list_attributes()) + '\n\nqueue %d' % (self.num_jobs)
 
     def __repr__(self):
         """docstring
 
         """
-        return self.ad.__repr__()
+        return self._attributes.__repr__()
 
     @property
     def name(self):
@@ -52,6 +52,15 @@ class Job(object):
         """
         return self._name
 
+    @name.setter
+    def name(self,name):
+        """
+
+        :param name:
+        :return:
+        """
+        self._name = name
+
     @property
     def executable(self):
         """
@@ -60,6 +69,15 @@ class Job(object):
         """
         return self._executable
 
+    @executable.setter
+    def executable(self, executable):
+        """
+
+        :param executable:
+        :return:
+        """
+        self._executable = executable
+
     @property
     def num_jobs(self):
         """
@@ -67,6 +85,15 @@ class Job(object):
         :return:
         """
         return self._num_jobs
+
+    @num_jobs.setter
+    def num_jobs(self, num_jobs):
+        """
+
+        :param num_jobs:
+        :return:
+        """
+        self._num_jobs = num_jobs
 
     @property
     def log_file(self):
@@ -97,6 +124,15 @@ class Job(object):
         if not self._initial_dir:
             self._initial_dir = os.getcwd()
         return self._initial_dir
+
+    @initial_dir.setter
+    def initial_dir(self, initial_dir):
+        """
+
+        :param initial_dir:
+        :return:
+        """
+        self._initial_dir = initial_dir
 
     def submit(self, queue=None, options=None):
         """docstring
@@ -179,8 +215,7 @@ class Job(object):
         job_file_name = '%s.job' % (self.name)
         job_file_path = os.path.join(self.initial_dir,job_file_name)
         job_file = open(job_file_path, 'w')
-        job_file.write('\n'.join(self._list_attributes()))
-        job_file.write('\nqueue %d' % (self.num_jobs))
+        job_file.write(self.__str__())
         job_file.close()
         return job_file_path
 

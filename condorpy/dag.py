@@ -24,7 +24,7 @@ class Node(object):
 
     """
 
-    def __init__(self, job=none):
+    def __init__(self, job=None):
         self._job = job
         self._parent_nodes = []
         self._child_nodes = []

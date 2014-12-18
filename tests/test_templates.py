@@ -1,12 +1,14 @@
 import unittest
 from condorpy import templates
+from condorpy import Job
 
 
 def load_tests(loader, tests, pattern):
-    return unittest.TestLoader().loadTestsFromTestCase(JobTest)
+    return unittest.TestLoader().loadTestsFromTestCase(TestTemplates)
 
 
 class TestTemplates(unittest.TestCase):
 
     def test_base(self):
-        self.fail()
+        job = Job('newJob',templates.base())
+        print job
