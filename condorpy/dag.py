@@ -7,8 +7,10 @@ class DAG(object):
     """
 
     """
-    def __init__(self):
-        pass
+    def __init__(self,name):
+        """
+        """
+        self._name = name
 
     def __str__(self):
         pass
