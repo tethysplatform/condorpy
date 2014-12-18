@@ -147,7 +147,10 @@ class Job(object):
 
         job_file = self._write_job_file()
 
-        args = ['condor_submit', job_file]
+        args = ['condor_submit']
+        if options:
+            args.append(options)
+        args.append(job_file)
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
