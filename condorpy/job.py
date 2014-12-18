@@ -234,11 +234,10 @@ class Job(object):
         """docstring
 
         """
-        os.makedirs(dir_name)
-        # try:
-        #     os.mkdir(dir_name)
-        # except OSError:
-        #     pass
+        try:
+            os.makedirs(dir_name)
+        except OSError:
+            pass
 
     def _make_job_dirs(self):
         """docstring

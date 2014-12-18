@@ -48,6 +48,7 @@ class TestJob(unittest.TestCase):
 
     def test_resolve_attribute(self):
         job = Job('test1', Templates.vanilla_base)
+        print job.initial_dir
         print job._resolve_attribute('initialdir')
         print job._resolve_attribute('not_there')
 
