@@ -8,6 +8,7 @@ Created on May 23, 2014
 #TODO: print job to command line
 #TODO: write job file (submit description file) method in the job class
 
+
 try:
     import htcondor
 except ImportError:
@@ -19,7 +20,7 @@ except ImportError:
     import condorpy.pseudoclassad as classad
 
 import condorpy.classad_translation as translate
-import os
+import os, subprocess
 
 class Job(object):
     """classdocs
@@ -86,6 +87,68 @@ class Job(object):
         self.cluster_id = self.schedd.submit(self.ad, queue)
         self.num_jobs = queue
         return self.cluster_id
+
+    def _submit( self, ad, count = 1, spool = False, ad_results = None ):
+        '''
+        Submit one or more jobs to the condor_schedd daemon. Returns the newly
+        created cluster ID.
+
+        This method requires the invoker to provide a ClassAd for the new job
+        cluster; such a ClassAd contains attributes with different names than
+        the commands in a submit description file. As an example, the stdout
+        file is referred to as output in the submit description file, but Out
+        in the ClassAd. To generate an example ClassAd, take a sample submit
+        description file and invoke
+
+        condor_submit -dump <filename> [cmdfile]
+
+        Then, load the resulting contents of <filename> into Python.
+
+        Parameter ad is the ClassAd describing the job cluster.
+
+        Parameter count is the number of jobs to submit to the cluster.
+        Defaults to 1.
+
+        Parameter spool inserts the necessary attributes into the job for it to
+        have the input files spooled to a remote condor_schedd daemon. This
+        parameter is necessary for jobs submitted to a remote condor_schedd.
+
+        Parameter ad_results, if set to a list, will contain the job ClassAds
+        resulting from the job submission. These are useful for interacting
+        with the job spool at a later time.
+        '''
+
+        initdir = ad.get('Iwd')
+        if not initdir:
+            initdir = os.getcwd()
+
+        jobFile = self._writeJobFile(initdir, ad, count)
+
+        args = ['condor_submit', jobFile]
+
+        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        out,err = process.communicate()
+        if err:
+            if re.match('WARNING',err):
+                print(err)
+            else:
+                raise Exception(err)
+
+        cluster = re.split(' |\.',out)[-2]
+        return cluster
+
+        #wait for job to finish
+        #logFile = "%s/logs/condor.log" % (initdir) ##TODO - read logfile attribute from class ad
+        #process = subprocess.Popen(['condor_wait', logFile], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        #process.communicate()
+
+    def _writeJobFile(path, ad, count):
+        jobFileName = os.path.join(path,'condor.job')
+        jobFile = open(jobFileName, 'w')
+        jobFile.write('\n'.join(_translate(ad)))
+        jobFile.write('\nqueue %d' % count)
+        jobFile.close()
+        return jobFileName
 
     def remove(self):
         """docstring
