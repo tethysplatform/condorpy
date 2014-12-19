@@ -4,6 +4,7 @@ Created on May 23, 2014
 @author: sdc50
 '''
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
+#TODO: add ability to submit to remote schedulers
 
 import os, subprocess, re
 
@@ -25,6 +26,7 @@ class Job(object):
         self._attributes = attributes or dict()
         self.executable = executable
         self._num_jobs = 1
+        self._job_file = ""
         self._log_file = ""
         self._cluster_id = None
         self._initial_dir = os.getcwd()
@@ -59,6 +61,18 @@ class Job(object):
         :return:
         """
         self._name = name
+
+    @property
+    def job_file(self):
+        """
+
+        :return:
+        """
+        #TODO: should the job file be just the name or the name and initdir?
+        job_file_name = '%s.job' % (self.name)
+        job_file_path = os.path.join(self.initial_dir,job_file_name)
+        self._job_file = job_file_path
+        return self._job_file
 
     @property
     def executable(self):
@@ -145,12 +159,12 @@ class Job(object):
         self._make_job_dirs()
         self._num_jobs = queue or self.num_jobs
 
-        job_file = self._write_job_file()
+        self._write_job_file()
 
         args = ['condor_submit']
         if options:
             args.append(options)
-        args.append(job_file)
+        args.append(self.job_file)
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
@@ -219,12 +233,9 @@ class Job(object):
 
 
     def _write_job_file(self):
-        job_file_name = '%s.job' % (self.name)
-        job_file_path = os.path.join(self.initial_dir,job_file_name)
-        job_file = open(job_file_path, 'w')
+        job_file = open(self.job_file, 'w')
         job_file.write(self.__str__())
         job_file.close()
-        return job_file_path
 
     def _list_attributes(self):
         list = []
