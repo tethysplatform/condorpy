@@ -17,9 +17,10 @@ class DAG(object):
     def __str__(self):
         """
         """
-        result = ""
+        self.complete_set()
+        result = ''
         for node in self._node_set:
-            result += (str(node))
+            result += str(node)
 
         return result
 
@@ -46,12 +47,19 @@ class DAG(object):
         """
         return '%s.dag' % (self.name)
 
+    def add_node(self, node):
+        """
+        """
+        assert isinstance(node, Node)
+        self._node_set.add(node)
+
     def submit(self):
         """
         ensures that all relatives of nodes in node_set are also added to the set before submitting
         """
         self.complete_set()
         self._write_dag_file()
+        #TODO: write all node job files
 
     def complete_set(self):
         """
@@ -77,10 +85,10 @@ class Node(object):
 
     """
 
-    def __init__(self, job=None,
-                 parents=set(),
-                 children=set(),
-                 variables=dict(),
+    def __init__(self, job,
+                 parents=None,
+                 children=None,
+                 variables=None,
                  pre_script=None,
                  post_script=None,
                  retry=0):
@@ -95,11 +103,11 @@ class Node(object):
         :return:
         """
         self._job = job
-        self._parent_nodes = parents
+        self._parent_nodes = parents or set()
         self._link_parent_nodes()
-        self._child_nodes = children
+        self._child_nodes = children or set()
         self._link_child_nodes()
-        self._variables = variables
+        self._variables = variables or dict()
         self._pre_script = pre_script
         self._post_script = post_script
         self._retry = retry
@@ -110,19 +118,18 @@ class Node(object):
         :return:
         """
         result = 'JOB %s %s\n' % (self.job.name, self.job.job_file)
-        child_names = ''
-        for child in self.child_nodes:
-            child_names += child.name + ' '
-        result += 'PARENT %s CHILD %s' % (self.job.name, child_names)
+        if len(self.child_nodes):
+            result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
         if self.retry:
-            result += 'RETRY %s %d' % (self.job.name, self.retry)
+            result += 'RETRY %s %d\n' % (self.job.name, self.retry)
+        return result
 
     def __repr__(self):
         """
 
         :return:
         """
-        pass
+        return '<NODE: Job:%s Parents:%s Children:%s>' % (self.job.name, self._get_parent_names(), self._get_child_names())
 
     @property
     def job(self):
@@ -217,8 +224,9 @@ class Node(object):
         :return:
         """
         assert isinstance(parent, Node)
-        self._parent_nodes.add(parent)
-        parent.add_child(self)
+        self.parent_nodes.add(parent)
+        if self not in parent.child_nodes:
+            parent.add_child(self)
 
     def remove_parent(self, parent):
         """
@@ -227,8 +235,9 @@ class Node(object):
         :return:
         """
         assert isinstance(parent, Node)
-        self._parent_nodes.discard(parent)
-        parent.remove_child(self)
+        self.parent_nodes.discard(parent)
+        if self in parent.child_nodes:
+            parent.remove_child(self)
 
     def add_child(self, child):
         """
@@ -237,8 +246,9 @@ class Node(object):
         :return:
         """
         assert isinstance(child, Node)
-        self._child_nodes.add(child)
-        child.add_parent(self)
+        self.child_nodes.add(child)
+        if self not in child.parent_nodes:
+            child.add_parent(self)
 
     def remove_child(self, child):
         """
@@ -247,8 +257,23 @@ class Node(object):
         :return:
         """
         assert isinstance(child, Node)
-        self._child_nodes.discard(child)
-        child.remove_parent(self)
+        self.child_nodes.discard(child)
+        if self in child.parent_nodes:
+            child.remove_parent(self)
+
+    def _add(self):
+        """
+
+        :return:
+        """
+        pass
+
+    def _remove(self):
+        """
+
+        :return:
+        """
+        pass
 
     def get_all_family_nodes(self):
         """
@@ -256,7 +281,7 @@ class Node(object):
         :return:
         """
         ancestors = self._get_all_ancestors()
-        descendants = self._get_all_decendants()
+        descendants = self._get_all_descendants()
         family_nodes = ancestors.union(descendants)
         return family_nodes
 
@@ -297,7 +322,8 @@ class Node(object):
         :return:
         """
         for parent in self.parent_nodes:
-            parent.add_child(self)
+            if self not in parent.child_nodes:
+                parent.add_child(self)
 
     def _link_child_nodes(self):
         """
@@ -305,4 +331,29 @@ class Node(object):
         :return:
         """
         for child in self.child_nodes:
-            child.add_parent(self)
+            if self not in child.parent_nodes:
+                child.add_parent(self)
+
+    def _get_child_names(self):
+        """
+
+        :return:
+        """
+        return self._get_names(self.child_nodes)
+
+    def _get_parent_names(self):
+        """
+
+        :return:
+        """
+        return self._get_names(self.parent_nodes)
+
+    def _get_names(self, nodes):
+        """
+
+        :return:
+        """
+        names = ''
+        for node in nodes:
+            names += node.job.name + ' '
+        return names
