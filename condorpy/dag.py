@@ -1,7 +1,9 @@
 __author__ = 'sdc50'
 
 from job import Job
+import subprocess, re
 
+#TODO: set initialdir that overrides jobs' initaildir?
 
 class DAG(object):
     """
@@ -53,13 +55,30 @@ class DAG(object):
         assert isinstance(node, Node)
         self._node_set.add(node)
 
-    def submit(self):
+    def submit(self, options=None):
         """
         ensures that all relatives of nodes in node_set are also added to the set before submitting
         """
         self.complete_set()
         self._write_dag_file()
-        #TODO: write all node job files
+        for node in self._node_set:
+            node.job._write_job_file()
+
+        args = ['condor_submit_dag']
+        if options:
+            args.append(options)
+        args.append(self.dag_file)
+
+        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        out,err = process.communicate()
+
+        if err:
+            if re.match('WARNING',err):
+                print(err)
+            else:
+                raise Exception(err)
+        print out
+
 
     def complete_set(self):
         """

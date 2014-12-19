@@ -5,6 +5,7 @@ Created on May 23, 2014
 '''
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
 #TODO: add ability to submit to remote schedulers
+#TODO: make job attributes all instance attributes
 
 import os, subprocess, re
 
@@ -156,7 +157,6 @@ class Job(object):
         if not self.executable:
             raise NoExecutable('You cannot submit a job without an executable')
 
-        self._make_job_dirs()
         self._num_jobs = queue or self.num_jobs
 
         self._write_job_file()
@@ -233,6 +233,7 @@ class Job(object):
 
 
     def _write_job_file(self):
+        self._make_job_dirs()
         job_file = open(self.job_file, 'w')
         job_file.write(self.__str__())
         job_file.close()
