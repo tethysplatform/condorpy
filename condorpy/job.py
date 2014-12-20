@@ -7,6 +7,7 @@ Created on May 23, 2014
 #TODO: add ability to submit to remote schedulers
 
 import os, subprocess, re
+from collections import OrderedDict
 
 class Job(object):
     """classdocs
@@ -23,7 +24,7 @@ class Job(object):
         if attributes:
             assert isinstance(attributes, dict)
         self._name = name
-        self._attributes = attributes or dict()
+        self._attributes = attributes or OrderedDict()
         self.executable = executable
         self._num_jobs = 1
         self._job_file = ""
@@ -51,7 +52,10 @@ class Job(object):
         :param item:
         :return:
         """
-        self.get(item)
+        if item == '_attributes':
+            return self.__dict__['_attributes']
+        else:
+            self.get(item)
 
     def __setattr__(self, key, value):
         """
