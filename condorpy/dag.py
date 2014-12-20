@@ -20,9 +20,13 @@ class DAG(object):
         """
         """
         self.complete_set()
-        result = ''
+        jobs = ''
+        relationships = ''
         for node in self._node_set:
-            result += str(node)
+            jobs += str(node)
+            relationships += node.list_relations()
+
+        result = '%s\n%s' % (jobs, relationships)
 
         return result
 
@@ -136,12 +140,8 @@ class Node(object):
 
         :return:
         """
-        result = 'JOB %s %s\n' % (self.job.name, self.job.job_file)
-        if len(self.child_nodes):
-            result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
-        if self.retry:
-            result += 'RETRY %s %d\n' % (self.job.name, self.retry)
-        return result
+        return 'JOB %s %s\n' % (self.job.name, self.job.job_file)
+
 
     def __repr__(self):
         """
@@ -352,6 +352,18 @@ class Node(object):
         for child in self.child_nodes:
             if self not in child.parent_nodes:
                 child.add_parent(self)
+
+    def list_relations(self):
+        """
+
+        :return:
+        """
+        result = ''
+        if len(self.child_nodes):
+            result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
+        if self.retry:
+            result += 'RETRY %s %d\n' % (self.job.name, self.retry)
+        return result
 
     def _get_child_names(self):
         """
