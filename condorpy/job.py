@@ -5,7 +5,6 @@ Created on May 23, 2014
 '''
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
 #TODO: add ability to submit to remote schedulers
-#TODO: make job attributes all instance attributes
 
 import os, subprocess, re
 
@@ -46,12 +45,30 @@ class Job(object):
         """
         return self._attributes.__repr__()
 
+    def __getattr__(self, item):
+        """
+
+        :param item:
+        :return:
+        """
+        self.get(item)
+
+    def __setattr__(self, key, value):
+        """
+
+        :param key:
+        :param value:
+        :return:
+        """
+        self.set(key, value)
+
     @property
     def name(self):
         """
 
         :return:
         """
+        self._name = self.get('job_name')
         return self._name
 
     @name.setter
@@ -61,7 +78,7 @@ class Job(object):
         :param name:
         :return:
         """
-        self._name = name
+        self.set('job_name', name)
 
     @property
     def job_file(self):
@@ -75,23 +92,6 @@ class Job(object):
         self._job_file = job_file_path
         return self._job_file
 
-    @property
-    def executable(self):
-        """
-
-        :return:
-        """
-        self._executable = self.get('executable')
-        return self._executable
-
-    @executable.setter
-    def executable(self, executable):
-        """
-
-        :param executable:
-        :return:
-        """
-        self.set('executable', executable)
 
     @property
     def num_jobs(self):
