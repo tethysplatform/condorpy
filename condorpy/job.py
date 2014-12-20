@@ -88,7 +88,7 @@ class Job(object):
         """
         #TODO: should the job file be just the name or the name and initdir?
         job_file_name = '%s.job' % (self.name)
-        job_file_path = os.path.join(self.initial_dir,job_file_name)
+        job_file_path = os.path.join(self.initialdir,job_file_name)
         self._job_file = job_file_path
         return self._job_file
 
@@ -130,7 +130,7 @@ class Job(object):
         return self._cluster_id
 
     @property
-    def initial_dir(self):
+    def initialdir(self):
         """
 
         :return:
@@ -140,8 +140,8 @@ class Job(object):
             self._initial_dir = os.getcwd()
         return self._initial_dir
 
-    @initial_dir.setter
-    def initial_dir(self, initial_dir):
+    @initialdir.setter
+    def initialdir(self, initial_dir):
         """
 
         :param initial_dir:
@@ -258,10 +258,10 @@ class Job(object):
         """docstring
 
         """
-        self._make_dir(self.initial_dir)
+        self._make_dir(self.initialdir)
         log_dir = self._resolve_attribute('logdir')
         if log_dir:
-            self._make_dir(os.path.join(self.initial_dir, log_dir))
+            self._make_dir(os.path.join(self.initialdir, log_dir))
 
     def _resolve_attribute(self, attribute):
         """
