@@ -43,7 +43,7 @@ class Job(object):
         """docstring
 
         """
-        return self._attributes.__repr__()
+        return self.attributes.__repr__()
 
     def __getattr__(self, item):
         """
@@ -79,6 +79,14 @@ class Job(object):
         :return:
         """
         self.set('job_name', name)
+
+    @property
+    def attributes(self):
+        """
+
+        :return:
+        """
+        return self._attributes
 
     @property
     def job_file(self):
@@ -213,7 +221,7 @@ class Job(object):
 
         """
         try:
-            value = self._attributes[attr]
+            value = self.attributes[attr]
         except KeyError:
             pass
         return value
@@ -222,14 +230,14 @@ class Job(object):
         """set attribute in job file
 
         """
-        self._attributes[attr] = value
+        self.attributes[attr] = value
 
     def delete(self, attr):
         """delete attribute from job file
         :param attr:
         :return:none
         """
-        self._attributes.pop(attr)
+        self.attributes.pop(attr)
 
 
     def _write_job_file(self):
@@ -240,7 +248,7 @@ class Job(object):
 
     def _list_attributes(self):
         list = []
-        for k,v in self._attributes.iteritems():
+        for k,v in self.attributes.iteritems():
             if v:
                 list.append(k + ' = ' + str(v))
         return list
