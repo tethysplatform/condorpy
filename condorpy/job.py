@@ -17,21 +17,21 @@ class Job(object):
     """
 
 
-    def __init__(self, name, attributes=None, executable=None, num_jobs=None):
+    def __init__(self, name, attributes=None, executable=None, arguments=None, num_jobs=None):
         """Constructor
 
         """
         if attributes:
             assert isinstance(attributes, dict)
-        self._name = name
-        self._attributes = attributes or OrderedDict()
+        self.__dict__['_name'] = name
+        self.__dict__['_attributes'] = attributes or OrderedDict()
+        self.__dict__['_num_jobs'] = 1
+        self.__dict__['_cluster_id'] = None
+        self.__dict__['_job_file'] = ''
+        self.job_name = name
         self.executable = executable
-        self._num_jobs = 1
-        self._job_file = ""
-        self._log_file = ""
-        self._cluster_id = None
-        self._initial_dir = os.getcwd()
-        self.set('job_name',self.name)
+        self.arguments = arguments
+
 
     def __str__(self):
         """docstring
@@ -52,10 +52,7 @@ class Job(object):
         :param item:
         :return:
         """
-        if item == '_attributes':
-            return self.__dict__['_attributes']
-        else:
-            self.get(item)
+        self.get(item)
 
     def __setattr__(self, key, value):
         """
@@ -93,19 +90,6 @@ class Job(object):
         return self._attributes
 
     @property
-    def job_file(self):
-        """
-
-        :return:
-        """
-        #TODO: should the job file be just the name or the name and initdir?
-        job_file_name = '%s.job' % (self.name)
-        job_file_path = os.path.join(self.initialdir,job_file_name)
-        self._job_file = job_file_path
-        return self._job_file
-
-
-    @property
     def num_jobs(self):
         """
 
@@ -120,18 +104,7 @@ class Job(object):
         :param num_jobs:
         :return:
         """
-        self._num_jobs = num_jobs
-
-    @property
-    def log_file(self):
-        """
-
-        :return:
-        """
-        self._log_file = self._resolve_attribute('log')
-        if not self._log_file:
-            self._log_file = '%s.log' % (self.name)
-        return self._log_file
+        self._num_jobs = int(num_jobs)
 
     @property
     def cluster_id(self):
@@ -142,24 +115,39 @@ class Job(object):
         return self._cluster_id
 
     @property
+    def job_file(self):
+        """
+
+        :return:
+        """
+        #TODO: should the job file be just the name or the name and initdir?
+        job_file_name = '%s.job' % (self.name)
+        job_file_path = os.path.join(self.initialdir,job_file_name)
+        self._job_file = job_file_path
+        return self._job_file
+
+    @property
+    def log_file(self):
+        """
+
+        :return:
+        """
+        log_file = self.get('log')
+        if not log_file:
+            log_file = '%s.log' % (self.name)
+            self.set('log', log_file)
+        return self._resolve_attribute('log')
+
+    @property
     def initialdir(self):
         """
 
         :return:
         """
-        self._initial_dir = self._resolve_attribute('initialdir')
-        if not self._initial_dir:
-            self._initial_dir = os.getcwd()
-        return self._initial_dir
-
-    @initialdir.setter
-    def initialdir(self, initial_dir):
-        """
-
-        :param initial_dir:
-        :return:
-        """
-        self.set('initialdir', initial_dir)
+        initial_dir = self._resolve_attribute('initialdir')
+        if not initial_dir:
+            initial_dir = os.getcwd()
+        return initial_dir
 
     def submit(self, queue=None, options=None):
         """docstring
@@ -187,7 +175,10 @@ class Job(object):
             else:
                 raise Exception(err)
         print out
-        self._cluster_id = re.split(' |\.',out)[-2]
+        try:
+            self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
+        except:
+            self._cluster_id = -1
         return self.cluster_id
 
     def remove(self):
