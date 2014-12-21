@@ -46,7 +46,6 @@ class Job(object):
         """
         return self.attributes.__repr__()
 
-    '''
     def __copy__(self):
         """
 
@@ -65,7 +64,6 @@ class Job(object):
         copy = self.__copy__()
         copy._attributes = deepcopy(self.attributes, memo)
         return copy
-    '''
 
     def __getattr__(self, item):
         """
