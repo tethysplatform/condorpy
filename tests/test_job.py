@@ -6,6 +6,7 @@ Created on Aug 22, 2014
 import unittest
 from condorpy import Job
 from condorpy import Templates
+import os
 
 
 def load_tests(loader, tests, pattern):
@@ -48,12 +49,19 @@ class TestJob(unittest.TestCase):
 
     def test_resolve_attribute(self):
         job = Job('test1', Templates.vanilla_base)
-        print job.initial_dir
-        print job._resolve_attribute('initialdir')
-        print job._resolve_attribute('not_there')
+        self.assertEqual('test1', job._resolve_attribute('initialdir'))
 
     def test_str(self):
         pass
+
+    def test_job_file(self):
+        job_file = os.path.join(os.getcwd(), 'test.job')
+        self.assertEqual(job_file, self.job.job_file)
+
+        init_dir = 'init_dir'
+        self.job.initialdir = init_dir
+        job_file = os.path.join(init_dir, 'test.job')
+        self.assertEqual(job_file, self.job.job_file)
 
     def test_make_job_dirs(self):
         """

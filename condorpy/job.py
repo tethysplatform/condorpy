@@ -46,6 +46,7 @@ class Job(object):
         """
         return self.attributes.__repr__()
 
+    '''
     def __copy__(self):
         """
 
@@ -64,6 +65,7 @@ class Job(object):
         copy = self.__copy__()
         copy._attributes = deepcopy(self.attributes, memo)
         return copy
+    '''
 
     def __getattr__(self, item):
         """
@@ -71,7 +73,10 @@ class Job(object):
         :param item:
         :return:
         """
-        self.get(item)
+        try:
+            return self.__dict__[item]
+        except KeyError:
+            return self.get(item)
 
     def __setattr__(self, key, value):
         """
@@ -80,7 +85,10 @@ class Job(object):
         :param value:
         :return:
         """
-        self.set(key, value)
+        if  key in self.__dict__:
+            self.__dict__[key] = value
+        else:
+            self.set(key, value)
 
     @property
     def name(self):
