@@ -52,7 +52,7 @@ class Job(object):
         :return:
         """
         copy = Job(self.name)
-        copy.__dict__.update(self._dict__)
+        copy.__dict__.update(self.__dict__)
         return copy
 
     def __deepcopy__(self, memo):
