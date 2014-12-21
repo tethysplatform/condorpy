@@ -46,15 +46,24 @@ class Job(object):
         """
         return self.attributes.__repr__()
 
-    def __deepcopy__(self):
+    def __copy__(self):
+        """
+
+        :return:
+        """
+        copy = Job(self.name)
+        copy.__dict__.update(self._dict__)
+        return copy
+
+    def __deepcopy__(self, memo):
         """
 
         :return:
         """
         from copy import deepcopy
-        copy = Job(self.name)
-        copy.__dict__.update(self._dict__)
-        copy._attributes = deepcopy(self.attributes)
+        copy = self.__copy__()
+        copy._attributes = deepcopy(self.attributes, memo)
+        return copy
 
     def __getattr__(self, item):
         """
