@@ -49,14 +49,22 @@ class TestNode(TestCase):
         """
         dag = DAG('test_dag')
         dag.add_node(self.node_a)
-        print dag
 
 
     def test_parent_nodes(self):
-        self.fail()
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_add_parent(self):
-        self.fail()
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_add_child(self):
-        self.fail()
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))

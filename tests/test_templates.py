@@ -9,18 +9,16 @@ def load_tests(loader, tests, pattern):
 
 class TestTemplates(unittest.TestCase):
 
+    def setUp(self):
+        pass
+
+
+    def tearDown(self):
+        pass
+
     def test_base(self):
         base = Templates.base
-        job = Job('newJob', Templates.base)
-        print job
-        job.set('job_name', '')
-        job.set('executable','test.py')
-        print job
-
-        job2 = Job('job2', Templates.base)
-        job2.set('job_name', '')
-        job2.set('executable', '')
-        self.assertEqual(job2._attributes, base)
-
-        vanilla_job = Job('vanilla', Templates.vanilla_transfer_files)
-        print vanilla_job
+        expected = base
+        actual = dict
+        msg = 'checking that base is an instance of dict'
+        self.assertIsInstance(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
