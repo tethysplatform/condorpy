@@ -5,66 +5,32 @@ __author__ = 'sdc50'
 
 
 class TestDAG(TestCase):
-    pass
-
-
-class TestNode(TestCase):
-    """
-
-    """
-
-    def setUp(self):
-        """
-
-        :return:
-        """
-        self.job_a = Job('a', Templates.base)
-        self.job_b = Job('b', Templates.base)
-        self.job_c = Job('c', Templates.base)
-        self.job_d = Job('d', Templates.base)
-
-        self.node_a = Node(self.job_a)
-        self.node_b = Node(self.job_b)
-        self.node_c = Node(self.job_c)
-        self.node_d = Node(self.job_d)
-
-        self.node_a.add_child(self.node_b)
-        self.node_a.add_child(self.node_c)
-        self.node_d.add_parent(self.node_b)
-        self.node_d.add_parent(self.node_c)
-
-
-
-    def tearDown(self):
-        """
-
-        :return:
-        """
+    def test__init__(self):
         pass
 
-    def test_job(self):
-        """
+    def test__str__(self):
+        pass
 
-        :return:
-        """
-        dag = DAG('test_dag')
-        dag.add_node(self.node_a)
+    def test__repr__(self):
+        pass
 
+    def test_name(self):
+        pass
 
-    def test_parent_nodes(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_node_set(self):
+        pass
 
-    def test_add_parent(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_dag_file(self):
+        pass
 
-    def test_add_child(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_add_node(self):
+        pass
+
+    def test_submit(self):
+        pass
+
+    def test_complete_set(self):
+        pass
+
+    def test_write_dag_file(self):
+        pass

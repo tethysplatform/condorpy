@@ -24,36 +24,27 @@ class TestJob(unittest.TestCase):
         pass
 
 
-    def test_constructor(self):
-        """check initialization of instance variables
+    def test__init__(self):
+        pass
 
-        :return: None
-        """
+    def test__str__(self):
+        pass
 
-        #check that instance variables are instantiated with default constructor
-        '''
-        self.job = Job()
-        self.assertIsInstance(self.job.ad,classad.ClassAd, 'ad must be instance of classad.Classad')
-        self.assertIsNone(self.job.cluster_id,'cluster id should be set to None')
-        self.assertIsInstance(self.job.schedd,htcondor.Schedd,'schedd must be an instance of htcondor.Schedd')
+    def test__repr__(self):
+        pass
 
-        #check that classad with attributes is instantiated when passed to constructor
-        ad = classad.ClassAd({'Foo':'Bar'})
-        self.job = Job(ad)
-        self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
+    def test__copy__(self):
+        pass
 
-        #check that classad without attributes is instantiated when passed to constructor
-        assert(isinstance(ad,classad.ClassAd))
-        self.job = Job(ad)
-        self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
-        '''
-        '''
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test__deepcopy__(self):
+        pass
 
-        '''
+    def test__getattr__(self):
+        pass
+
+    def test__setattr__(self):
+        pass
+
     def test_name(self):
         expected = self.job_name
         actual = self.job.name
@@ -69,18 +60,14 @@ class TestJob(unittest.TestCase):
         self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
 
-    def test_resolve_attribute(self):
-        job = Job(self.job_name, Templates.vanilla_base)
-        expected = self.job_name
-        actual = job._resolve_attribute('initialdir')
-        msg = 'checking resolving attribute function'
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_attributes(self):
+        pass
 
-    def test_str(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_num_jobs(self):
+        pass
+
+    def test_cluster_id(self):
+        pass
 
     def test_job_file(self):
         job_file_name = '%s.job' % (self.job_name)
@@ -95,100 +82,62 @@ class TestJob(unittest.TestCase):
         job_file = os.path.join(init_dir, job_file_name)
         self.assertEqual(job_file, self.job.job_file)
 
-    def test_make_job_dirs(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+    def test_log_file(self):
+        pass
+
+    def test_initial_dir(self):
+        pass
 
     def test_submit(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        pass
 
     def test_remove(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        pass
 
     def test_edit(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        expected = NotImplementedError
+        actual = self.job.edit
+        self.assertRaises(expected, actual)
 
     def test_status(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        expected = NotImplementedError
+        actual = self.job.edit
+        self.assertRaises(expected, actual)
+
+    def test_wait(self):
+        pass
 
     def test_get(self):
-        expected = None
-        actual = None
-        msg = ''
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        pass
 
     def test_set(self):
-        expected = None
-        actual = None
-        msg = ''
+        pass
+
+    def test_delete(self):
+        pass
+
+
+    def test_write_job_file(self):
+        pass
+
+    def test_list_attributes(self):
+        pass
+
+    def test_make_dir(self):
+        pass
+
+    def test_make_job_dirs(self):
+        pass
+
+    def test_resolve_attribute(self):
+        job = Job(self.job_name, Templates.vanilla_base)
+        expected = self.job_name
+        actual = job._resolve_attribute('initialdir')
+        msg = 'checking resolving attribute function'
         self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
-##########################################
-#
-#    Unit Tests
-#
-##########################################
-'''
-def runTests():
-    print 'testing'
-    # call tests here
-    test1()
-    testTemplates()
-    noCmdTest()
-    condorErrorTest()
-    print 'passed'
-
-def test1():
-    job = Job()
-    print job
-    job.set('executable', 'echo')
-    print job
-    job = Job()
-    print job
-    #job.submit()
-
-def testTemplates():
-    print 'Testing classad templates . . .'
-    import classad_templates as tmplt
-    job = Job(tmplt.ST_GSSHA)
-    job.set('initialdir', './test')
-    print job
-    #job.submit(2)
-
-def noCmdTest():
-    print 'Testing no executable . . .'
-
-    job = Job()
-    print job
-    try:
-        job.submit()
-        raise
-    except NoExecutable as e:
-        print str(e)
-
-def condorErrorTest():
-    print 'Testing condor errors'
-    job = Job()
-    job.set('executable', 'job.py')
-    job.set('not_an_attr', 'foobar')
-    try:
-        job.submit()
-    except Exception as e:
-        print str(e)'''
+    def test_resolve_attribute_match(self):
+        pass
 
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
