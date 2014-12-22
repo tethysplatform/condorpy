@@ -7,6 +7,7 @@ import unittest
 from condorpy import Job
 from condorpy import Templates
 import os
+from collections import OrderedDict
 
 
 def load_tests(loader, tests, pattern):
@@ -23,12 +24,44 @@ class TestJob(unittest.TestCase):
     def tearDown(self):
         pass
 
-
     def test__init__(self):
-        pass
+
+        attributes = OrderedDict()
+        attributes['job_name'] = self.job_name
+        attributes['executable'] = None
+        attributes['arguments'] = None
+
+        expected = {'_name': self.job_name,
+                    '_attributes': attributes,
+                    '_num_jobs': 1,
+                    '_cluster_id': None,
+                    '_job_file': ''}
+        actual = self.job.__dict__
+        msg = 'testing initialization with default values'
+        self.assertDictContainsSubset(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+
+        exe = 'exe'
+        args = '-args'
+        num_jobs = 5
+        self.job = Job(self.job_name, OrderedDict(), exe, args, num_jobs)
+        attributes['executable'] = exe
+        attributes['arguments'] = args
+
+        expected = {'_name': self.job_name,
+                    '_attributes': attributes,
+                    '_num_jobs': num_jobs,
+                    '_cluster_id': None,
+                    '_job_file': ''}
+        actual = self.job.__dict__
+        msg = 'testing initialization with all values supplied'
+        self.assertDictContainsSubset(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test__str__(self):
-        pass
+        expected = 'job_name = %s\n\nqueue 1\n' % (self.job_name)
+        actual = self.job.__str__()
+        msg = 'testing to string with default initialization'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
 
     def test__repr__(self):
         pass
@@ -49,7 +82,7 @@ class TestJob(unittest.TestCase):
         expected = self.job_name
         actual = self.job.name
         msg = 'checking initialization of name'
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
         new_name = 'new_name'
         self.job.name = new_name
@@ -57,7 +90,7 @@ class TestJob(unittest.TestCase):
         expected = new_name
         actual = self.job.name
         msg = 'checking assignment of name'
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
 
     def test_attributes(self):
@@ -75,7 +108,7 @@ class TestJob(unittest.TestCase):
         expected = job_file
         actual = self.job.job_file
         msg = 'checking resolving attribute function for job file'
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
         init_dir = 'init_dir'
         self.job.initialdir = init_dir
@@ -116,7 +149,6 @@ class TestJob(unittest.TestCase):
     def test_delete(self):
         pass
 
-
     def test_write_job_file(self):
         pass
 
@@ -134,7 +166,7 @@ class TestJob(unittest.TestCase):
         expected = self.job_name
         actual = job._resolve_attribute('initialdir')
         msg = 'checking resolving attribute function'
-        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test_resolve_attribute_match(self):
         pass

@@ -25,7 +25,7 @@ class Job(object):
         if attributes:
             assert isinstance(attributes, dict)
         object.__setattr__(self, '_attributes', attributes or OrderedDict())
-        object.__setattr__(self, '_num_jobs', 1)
+        object.__setattr__(self, '_num_jobs', num_jobs or 1)
         object.__setattr__(self, '_cluster_id', None)
         object.__setattr__(self, '_job_file', '')
         self.job_name = name
