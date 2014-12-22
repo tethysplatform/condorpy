@@ -16,7 +16,8 @@ class TestJob(unittest.TestCase):
 
 
     def setUp(self):
-        self.job = Job('test')
+        self.job_name = 'job_name'
+        self.job = Job(self.job_name)
 
 
     def tearDown(self):
@@ -46,73 +47,95 @@ class TestJob(unittest.TestCase):
         self.job = Job(ad)
         self.assertEqual(ad, self.job.ad,'ad was not properly assigned')
         '''
+        '''
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+
+        '''
+    def test_name(self):
+        expected = self.job_name
+        actual = self.job.name
+        msg = 'checking initialization of name'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+
+        new_name = 'new_name'
+        self.job.name = new_name
+
+        expected = new_name
+        actual = self.job.name
+        msg = 'checking assignment of name'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+
 
     def test_resolve_attribute(self):
-        job = Job('test1', Templates.vanilla_base)
-        self.assertEqual('test1', job._resolve_attribute('initialdir'))
+        job = Job(self.job_name, Templates.vanilla_base)
+        expected = self.job_name
+        actual = job._resolve_attribute('initialdir')
+        msg = 'checking resolving attribute function'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_str(self):
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_job_file(self):
-        job_file = os.path.join(os.getcwd(), 'test.job')
-        self.assertEqual(job_file, self.job.job_file)
+        job_file_name = '%s.job' % (self.job_name)
+        job_file = os.path.join(os.getcwd(), job_file_name)
+        expected = job_file
+        actual = self.job.job_file
+        msg = 'checking resolving attribute function for job file'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
         init_dir = 'init_dir'
         self.job.initialdir = init_dir
-        job_file = os.path.join(init_dir, 'test.job')
+        job_file = os.path.join(init_dir, job_file_name)
         self.assertEqual(job_file, self.job.job_file)
 
     def test_make_job_dirs(self):
-        """
-
-        :return:
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_submit(self):
-        """
-
-        :return:
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_remove(self):
-        """docstring
-
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_edit(self):
-        """docstring
-
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_status(self):
-        """docstring
-
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_get(self):
-        """docstring
-
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
     def test_set(self):
-        """docstring
-
-        """
-
-        pass
+        expected = None
+        actual = None
+        msg = ''
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
 ##########################################
 #

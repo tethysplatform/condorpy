@@ -21,13 +21,13 @@ class Job(object):
         """Constructor
 
         """
+        object.__setattr__(self, '_name', name)
         if attributes:
             assert isinstance(attributes, dict)
-        self.__dict__['_name'] = name
-        self.__dict__['_attributes'] = attributes or OrderedDict()
-        self.__dict__['_num_jobs'] = 1
-        self.__dict__['_cluster_id'] = None
-        self.__dict__['_job_file'] = ''
+        object.__setattr__(self, '_attributes', attributes or OrderedDict())
+        object.__setattr__(self, '_num_jobs', 1)
+        object.__setattr__(self, '_cluster_id', None)
+        object.__setattr__(self, '_job_file', '')
         self.job_name = name
         self.executable = executable
         self.arguments = arguments
@@ -71,10 +71,7 @@ class Job(object):
         :param item:
         :return:
         """
-        try:
-            return self.__dict__[item]
-        except KeyError:
-            return self.get(item)
+        return self.get(item)
 
     def __setattr__(self, key, value):
         """
@@ -83,8 +80,8 @@ class Job(object):
         :param value:
         :return:
         """
-        if  key in self.__dict__:
-            self.__dict__[key] = value
+        if  key in self.__dict__ or '_' + key in self.__dict__:
+            object.__setattr__(self, key, value)
         else:
             self.set(key, value)
 
@@ -147,7 +144,7 @@ class Job(object):
         """
         #TODO: should the job file be just the name or the name and initdir?
         job_file_name = '%s.job' % (self.name)
-        job_file_path = os.path.join(self.initialdir,job_file_name)
+        job_file_path = os.path.join(self.initial_dir, job_file_name)
         self._job_file = job_file_path
         return self._job_file
 
@@ -164,7 +161,7 @@ class Job(object):
         return self._resolve_attribute('log')
 
     @property
-    def initialdir(self):
+    def initial_dir(self):
         """
 
         :return:
@@ -199,7 +196,7 @@ class Job(object):
                 print(err)
             else:
                 raise Exception(err)
-        print out
+        print(out)
         try:
             self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
         except:
@@ -286,10 +283,10 @@ class Job(object):
         """docstring
 
         """
-        self._make_dir(self.initialdir)
+        self._make_dir(self.initial_dir)
         log_dir = self._resolve_attribute('logdir')
         if log_dir:
-            self._make_dir(os.path.join(self.initialdir, log_dir))
+            self._make_dir(os.path.join(self.initial_dir, log_dir))
 
     def _resolve_attribute(self, attribute):
         """
@@ -317,3 +314,6 @@ class NoExecutable(Exception):
 
     """
     pass
+
+
+
