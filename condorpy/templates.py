@@ -42,6 +42,9 @@ class Templates(object):
             dict = pickle.load(file)
         self.__dict__.update(dict)
 
+    def reset(self):
+        self.__dict__ = dict()
+
     @property
     def base(self):
         base = OrderedDict()
