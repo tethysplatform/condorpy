@@ -20,12 +20,10 @@ class TestJob(unittest.TestCase):
         self.job_name = 'job_name'
         self.job = Job(self.job_name)
 
-
     def tearDown(self):
         pass
 
     def test__init__(self):
-
         attributes = OrderedDict()
         attributes['job_name'] = self.job_name
         attributes['executable'] = None
@@ -38,23 +36,27 @@ class TestJob(unittest.TestCase):
                     '_job_file': ''}
         actual = self.job.__dict__
         msg = 'testing initialization with default values'
-        self.assertDictContainsSubset(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
 
         exe = 'exe'
         args = '-args'
-        num_jobs = 5
+        num_jobs = '5'
         self.job = Job(self.job_name, OrderedDict(), exe, args, num_jobs)
         attributes['executable'] = exe
         attributes['arguments'] = args
 
         expected = {'_name': self.job_name,
                     '_attributes': attributes,
-                    '_num_jobs': num_jobs,
+                    '_num_jobs': int(num_jobs),
                     '_cluster_id': None,
                     '_job_file': ''}
         actual = self.job.__dict__
         msg = 'testing initialization with all values supplied'
-        self.assertDictContainsSubset(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        num_jobs = 'five'
+        self.assertRaises(ValueError, Job, self.job_name, num_jobs=num_jobs)
+
 
     def test__str__(self):
         expected = 'job_name = %s\n\nqueue 1\n' % (self.job_name)
@@ -64,15 +66,53 @@ class TestJob(unittest.TestCase):
 
 
     def test__repr__(self):
-        pass
+        expected = '<' \
+                   'Job: name=%s, num_jobs=%d, cluster_id=%s>' % (self.job_name, 1, None)
+        actual = self.job.__repr__()
+        msg = 'testing repr with default initialization'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test__copy__(self):
-        pass
+        original = self.job
+        copy = self.job.__copy__()
+        expected = original.name
+        actual = copy.name
+        msg = 'testing that name of copy is equal to original'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        expected = original.attributes
+        actual = copy.attributes
+        msg = 'testing that attributes dictionary of copy is equal to original'
+        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+        msg = "testing that attributes is the same instance as the original's"
+        self.assertIs(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
 
     def test__deepcopy__(self):
-        pass
+        original = self.job
+        memo = dict()
+        copy = self.job.__deepcopy__(memo)
+        expected = self.job.name
+        actual = copy.name
+        msg = 'testing that name of deepcopy is equal to original'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        expected = original.attributes
+        actual = copy.attributes
+        msg = 'testing that attributes dictionary of copy is equal to original'
+        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+        msg = "testing that attributes is not the same instance as the original's"
+        self.assertIsNot(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
 
     def test__getattr__(self):
+        exe = 'exe'
+        self.job = Job(self.job_name, executable=exe)
+        expected = exe
+        actual = self.job.executable
+        msg = 'testing that existing value is returned'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
         pass
 
     def test__setattr__(self):
@@ -141,13 +181,54 @@ class TestJob(unittest.TestCase):
         pass
 
     def test_get(self):
-        pass
+        non_existent_attr = 'not-there'
+        expected = None
+        actual = self.job.get(non_existent_attr)
+        msg = 'testing that None is returned when attribute does not exist'
+        self.assertIsNone(actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        expected = 'expected'
+        actual = self.job.get(non_existent_attr, expected)
+        msg = 'testing that supplied value is returned when attribute does not exist'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        exe = 'exe'
+        self.job = Job(self.job_name, executable=exe)
+        expected = exe
+        actual = self.job.get('executable')
+        msg = 'testing that existing value is returned'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
 
     def test_set(self):
-        pass
+        key = 'was-not-there'
+        value = 'now-it-is'
+        self.job.set(key, value)
+        expected = value
+        actual = self.job.attributes[key]
+        msg = 'testing that attribute that previously does not exist is set correctly'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        key = 'was-already-there'
+        value = 'used-to-be-this'
+        new_value = 'now-it-is-this'
+        self.job.set(key, value)
+        self.job.set(key,new_value)
+        expected = new_value
+        actual = self.job.attributes[key]
+        msg = 'testing that attribute that previously existed is re-set correctly'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test_delete(self):
-        pass
+        key = 'was-not-there'
+        value = 'now-it-is'
+        self.job.set(key, value)
+        self.job.delete(key)
+        member = key
+        container = self.job.attributes
+        msg = 'testing that attribute is removed when deleted'
+        self.assertNotIn(member, container, msg)
+
 
     def test_write_job_file(self):
         pass

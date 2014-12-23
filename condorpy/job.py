@@ -17,7 +17,7 @@ class Job(object):
     """
 
 
-    def __init__(self, name, attributes=None, executable=None, arguments=None, num_jobs=None):
+    def __init__(self, name, attributes=None, executable=None, arguments=None, num_jobs=1):
         """Constructor
 
         """
@@ -25,7 +25,7 @@ class Job(object):
         if attributes:
             assert isinstance(attributes, dict)
         object.__setattr__(self, '_attributes', attributes or OrderedDict())
-        object.__setattr__(self, '_num_jobs', num_jobs or 1)
+        object.__setattr__(self, '_num_jobs', int(num_jobs))
         object.__setattr__(self, '_cluster_id', None)
         object.__setattr__(self, '_job_file', '')
         self.job_name = name
@@ -44,7 +44,7 @@ class Job(object):
         """docstring
 
         """
-        return self.attributes.__repr__()
+        return '<Job: name=%s, num_jobs=%d, cluster_id=%s>' % (self.name, self.num_jobs, self.cluster_id)
 
     def __copy__(self):
         """

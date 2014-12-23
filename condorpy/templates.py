@@ -4,6 +4,8 @@ Created on Aug 4, 2014
 @author: sdc50
 '''
 from collections import OrderedDict
+from copy import deepcopy
+import pickle, os
 
 class Templates(object):
     """
@@ -12,6 +14,33 @@ class Templates(object):
 
     def __init__(self):
         pass
+
+    def __getattribute__(self, item):
+        """
+
+        :param item:
+        :return:
+        """
+        attr = object.__getattribute__(self, item)
+        if item in object.__getattribute__(self, '__dict__'):
+            attr = deepcopy(attr)
+        return attr
+
+    def save(self, file_name=None):
+        if not file_name:
+            file_name = os.path.join(os.path.dirname(__file__), 'condorpy-saved-templates')
+        with open(file_name, 'w') as file:
+            pickle.dump(self.__dict__, file)
+
+    def load(self, file_name=None):
+        if not file_name:
+            file_name = os.path.join(os.path.dirname(__file__), 'condorpy-saved-templates')
+        if not os.path.isfile(file_name):
+            return
+            #TODO: raise an error? log warning?
+        with open(file_name, 'r') as file:
+            dict = pickle.load(file)
+        self.__dict__.update(dict)
 
     @property
     def base(self):
