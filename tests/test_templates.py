@@ -9,7 +9,7 @@ class TestTemplates(TestCase):
 
     def setUp(self):
         Templates.reset()
-        self.default_save_location = os.path.join(os.getcwd(), '../condorpy/condorpy-saved-templates')
+        self.default_save_location = os.path.join(os.path.dirname(__file__), '../condorpy/condorpy-saved-templates')
         self.custom_save_location = 'saved-templates'
 
     def tearDown(self):
