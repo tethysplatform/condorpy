@@ -13,7 +13,9 @@ class Node(object):
                  children=None,
                  variables=None,
                  pre_script=None,
+                 pre_script_args=None,
                  post_script=None,
+                 post_script_args=None,
                  retry=0):
         """
 
@@ -32,7 +34,9 @@ class Node(object):
         self._link_child_nodes()
         self._variables = variables or dict()
         self._pre_script = pre_script
+        self._pre_script_args = pre_script_args
         self._post_script = post_script
+        self._post_script_args = post_script_args
         self._retry = retry
 
     def __str__(self):
@@ -88,6 +92,14 @@ class Node(object):
         self._pre_script = script
 
     @property
+    def pre_script_args(self):
+        return self._pre_script_args
+
+    @pre_script_args.setter
+    def pre_script_args(self, args):
+        self._pre_script_args = args
+
+    @property
     def post_script(self):
         """
 
@@ -103,6 +115,14 @@ class Node(object):
         :return:
         """
         self._post_script = script
+
+    @property
+    def post_script_args(self):
+        return self._post_script_args
+
+    @post_script_args.setter
+    def post_script_args(self, args):
+        self._post_script_args = args
 
     @property
     def parent_nodes(self):
@@ -263,6 +283,10 @@ class Node(object):
             result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
         if self.retry:
             result += 'RETRY %s %d\n' % (self.job.name, self.retry)
+        if self.pre_script:
+            result += 'SCRIPT PRE %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args)
+        if self.post_script:
+            result += 'SCRIPT POST %s %s\n' % (self.job.name, self.post_script, self.post_script_args)
         return result
 
     def _get_child_names(self):
