@@ -105,7 +105,7 @@ class Node(object):
 
         :return:
         """
-        return self._pre_script
+        return self._post_script
 
     @post_script.setter
     def post_script(self, script):
@@ -281,12 +281,12 @@ class Node(object):
         result = ''
         if len(self.child_nodes):
             result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
-        if self.retry:
-            result += 'RETRY %s %d\n' % (self.job.name, self.retry)
         if self.pre_script:
             result += 'SCRIPT PRE %s %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args)
         if self.post_script:
             result += 'SCRIPT POST %s %s %s\n' % (self.job.name, self.post_script, self.post_script_args)
+        if self.retry:
+            result += 'RETRY %s %d\n' % (self.job.name, self.retry)
         return result
 
     def _get_child_names(self):

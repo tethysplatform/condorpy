@@ -108,7 +108,11 @@ class TestNode(TestCase):
         pass
 
     def test_list_relations(self):
-        pass
+        node = Node(self.job_a, post_script='script', post_script_args='%s %s %s' % ('arg1', 'arg2', 'arg3'))
+        expected = 'SCRIPT POST a script arg1 arg2 arg3\n'
+        actual = node.list_relations()
+        msg = 'testing that post script string is formatted correctly'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test_get_child_names(self):
         pass
