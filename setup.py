@@ -1,4 +1,11 @@
 from setuptools import setup, find_packages
+import os
+
+with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
+    README = readme.read()
+
+# allow setup.py to be run from any path
+os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
 setup(
     name = "condorpy",
@@ -23,9 +30,10 @@ setup(
     author = "Scott Christensen",
     author_email = "sdc50@byu.net",
     description = "A package for creating and submitting jobs to HTCondor",
+    long_description=README,
     license = "PSF",
     keywords = "htcondor distributed-computing job-scheduling",
     url = "https://bitbucket.org/sdc50/condorpy/wiki/Home",   # project home page, if any
 
-    # could also include long_description, download_url, classifiers, etc.
+    # could also include download_url, classifiers, etc.
 )

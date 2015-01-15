@@ -284,9 +284,9 @@ class Node(object):
         if self.retry:
             result += 'RETRY %s %d\n' % (self.job.name, self.retry)
         if self.pre_script:
-            result += 'SCRIPT PRE %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args)
+            result += 'SCRIPT PRE %s %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args)
         if self.post_script:
-            result += 'SCRIPT POST %s %s\n' % (self.job.name, self.post_script, self.post_script_args)
+            result += 'SCRIPT POST %s %s %s\n' % (self.job.name, self.post_script, self.post_script_args)
         return result
 
     def _get_child_names(self):
