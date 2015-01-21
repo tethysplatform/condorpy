@@ -114,6 +114,9 @@ class TestNode(TestCase):
         msg = 'testing that post script string is formatted correctly'
         self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
+        dag = DAG('test')
+        dag.add_node(node)
+        print dag
     def test_get_child_names(self):
         pass
 

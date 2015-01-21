@@ -26,7 +26,7 @@ class Job(object):
             assert isinstance(attributes, dict)
         object.__setattr__(self, '_attributes', attributes or OrderedDict())
         object.__setattr__(self, '_num_jobs', int(num_jobs))
-        object.__setattr__(self, '_cluster_id', None)
+        object.__setattr__(self, '_cluster_id', 0)
         object.__setattr__(self, '_job_file', '')
         self.job_name = name
         self.executable = executable
@@ -305,6 +305,9 @@ class Job(object):
         :param match:
         :return:
         """
+        if match.group(1) == 'cluster':
+            return str(self.cluster_id)
+
         return self.get(match.group(1), match.group(0))
 
 

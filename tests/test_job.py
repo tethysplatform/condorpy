@@ -32,7 +32,7 @@ class TestJob(unittest.TestCase):
         expected = {'_name': self.job_name,
                     '_attributes': attributes,
                     '_num_jobs': 1,
-                    '_cluster_id': None,
+                    '_cluster_id': 0,
                     '_job_file': ''}
         actual = self.job.__dict__
         msg = 'testing initialization with default values'
@@ -48,7 +48,7 @@ class TestJob(unittest.TestCase):
         expected = {'_name': self.job_name,
                     '_attributes': attributes,
                     '_num_jobs': int(num_jobs),
-                    '_cluster_id': None,
+                    '_cluster_id': 0,
                     '_job_file': ''}
         actual = self.job.__dict__
         msg = 'testing initialization with all values supplied'
@@ -67,7 +67,7 @@ class TestJob(unittest.TestCase):
 
     def test__repr__(self):
         expected = '<' \
-                   'Job: name=%s, num_jobs=%d, cluster_id=%s>' % (self.job_name, 1, None)
+                   'Job: name=%s, num_jobs=%d, cluster_id=%s>' % (self.job_name, 1, 0)
         actual = self.job.__repr__()
         msg = 'testing repr with default initialization'
         self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
@@ -156,7 +156,13 @@ class TestJob(unittest.TestCase):
         self.assertEqual(job_file, self.job.job_file)
 
     def test_log_file(self):
-        pass
+        self.job = Job(self.job_name, Templates.base)
+        log_file = '%s/%s.%s.log' % (self.job.logdir, self.job_name, self.job.cluster_id)
+        expected = log_file
+        actual = self.job.log_file
+        msg = 'checking resolving attribute function for log file'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
 
     def test_initial_dir(self):
         pass
