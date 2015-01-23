@@ -42,6 +42,14 @@ class DAG(object):
         return self._name
 
     @property
+    def cluster_id(self):
+        """
+
+        :return:
+        """
+        return self._cluster_id
+
+    @property
     def node_set(self):
         """
         """
@@ -81,7 +89,13 @@ class DAG(object):
                 print(err)
             else:
                 raise Exception(err)
-        print out
+        print(out)
+        try:
+            self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
+        except:
+            self._cluster_id = -1
+
+        return self.cluster_id
 
 
     def complete_set(self):
