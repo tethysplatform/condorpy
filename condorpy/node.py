@@ -52,7 +52,7 @@ class Node(object):
 
         :return:
         """
-        return '<NODE: Job:%s Parents:%s Children:%s>' % (self.job.name, self._get_parent_names(), self._get_child_names())
+        return '<Node: %s parents(%s) children(%s)>' % (self.job.name, self._get_parent_names(), self._get_child_names())
 
     @property
     def job(self):
@@ -281,10 +281,18 @@ class Node(object):
         result = ''
         if len(self.child_nodes):
             result += 'PARENT %s CHILD %s\n' % (self.job.name, self._get_child_names())
+        return result
+
+    def list_scripts(self):
+        result = ''
         if self.pre_script:
-            result += 'SCRIPT PRE %s %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args)
+            result += 'SCRIPT PRE %s %s %s\n' % (self.job.name, self.pre_script, self.pre_script_args or '')
         if self.post_script:
-            result += 'SCRIPT POST %s %s %s\n' % (self.job.name, self.post_script, self.post_script_args)
+            result += 'SCRIPT POST %s %s %s\n' % (self.job.name, self.post_script, self.post_script_args or '')
+        return result
+
+    def list_options(self):
+        result = ''
         if self.retry:
             result += 'RETRY %s %d\n' % (self.job.name, self.retry)
         return result
@@ -308,7 +316,7 @@ class Node(object):
 
         :return:
         """
-        names = ''
+        names = []
         for node in nodes:
-            names += node.job.name + ' '
-        return names
+            names.append(node.job.name)
+        return ' '.join(names)

@@ -21,19 +21,23 @@ class DAG(object):
         """
         self.complete_set()
         jobs = ''
+        scripts = ''
         relationships = ''
+        options = ''
         for node in self._node_set:
             jobs += str(node)
+            scripts += node.list_scripts()
             relationships += node.list_relations()
+            options += node.list_options()
 
-        result = '%s\n%s' % (jobs, relationships)
+        result = '\n'.join((jobs, scripts, relationships, options))
 
         return result
 
     def __repr__(self):
         """
         """
-        pass
+        return '<DAG: %s>' % (self.name)
 
     @property
     def name(self):
@@ -74,6 +78,7 @@ class DAG(object):
         self.complete_set()
         self._write_dag_file()
         for node in self._node_set:
+            node.job.set('log', node.job.log_file)
             node.job._write_job_file()
 
         args = ['condor_submit_dag']
@@ -97,6 +102,13 @@ class DAG(object):
 
         return self.cluster_id
 
+    def wait(self):
+        """
+
+        :return:
+        """
+        process = subprocess.Popen(['condor_wait','%s.dagman.log' % (self.dag_file)], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        process.communicate()
 
     def complete_set(self):
         """
