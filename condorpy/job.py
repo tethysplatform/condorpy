@@ -171,7 +171,7 @@ class Job(object):
             initial_dir = os.getcwd()
         return initial_dir
 
-    def submit(self, queue=None, options=None):
+    def submit(self, queue=None, options=[]):
         """docstring
 
         """
@@ -184,8 +184,7 @@ class Job(object):
         self._write_job_file()
 
         args = ['condor_submit']
-        if options:
-            args.append(options)
+        args.extend(options)
         args.append(self.job_file)
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
@@ -203,12 +202,14 @@ class Job(object):
             self._cluster_id = -1
         return self.cluster_id
 
-    def remove(self):
+    def remove(self, options=[], job_num=None):
         """docstring
 
         """
-        options = self.cluster_id ##TODO allow other options (like specific processes in a cluster to be removed)
-        args = ['condor_rm', options]
+        args = ['condor_rm']
+        args.extend(options)
+        job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else self.cluster_id
+        args.append(job_id)
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         out,err = process.communicate()
         print(out,err)
@@ -225,12 +226,17 @@ class Job(object):
         """
         raise NotImplementedError("This method is not yet implemented")
 
-    def wait(self):
+    def wait(self, options=[], job_num=None):
         """
 
         :return:
         """
-        process = subprocess.Popen(['condor_wait', self.log_file], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        args = ['condor_wait']
+        args.extend(options)
+        job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else self.cluster_id
+        args.extend([self.log_file, job_id])
+
+        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
 
     def get(self, attr, value=None):

@@ -71,7 +71,7 @@ class DAG(object):
         assert isinstance(node, Node)
         self._node_set.add(node)
 
-    def submit(self, options=None):
+    def submit(self, options=[]):
         """
         ensures that all relatives of nodes in node_set are also added to the set before submitting
         """
@@ -82,8 +82,7 @@ class DAG(object):
             node.job._write_job_file()
 
         args = ['condor_submit_dag']
-        if options:
-            args.append(options)
+        args.extend(options)
         args.append(self.dag_file)
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
@@ -102,12 +101,16 @@ class DAG(object):
 
         return self.cluster_id
 
-    def wait(self):
+    def wait(self, options=[]):
         """
 
         :return:
         """
-        process = subprocess.Popen(['condor_wait','%s.dagman.log' % (self.dag_file)], stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+        args = ['condor_wait']
+        args.extend(options)
+        args.append('%s.dagman.log' % (self.dag_file))
+
+        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
 
     def complete_set(self):
