@@ -154,6 +154,7 @@ class Job(object):
 
         :return:
         """
+        #TODO: should the log file be just the name or the name and initdir?
         log_file = self.get('log')
         if not log_file:
             log_file = '%s.log' % (self.name)
@@ -234,7 +235,8 @@ class Job(object):
         args = ['condor_wait']
         args.extend(options)
         job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else self.cluster_id
-        args.extend([self.log_file, job_id])
+        abs_log_file = os.path.join(self.initial_dir, self.log_file)
+        args.extend([abs_log_file, job_id])
 
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
