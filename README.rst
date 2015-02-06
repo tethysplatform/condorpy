@@ -14,15 +14,15 @@ Condorpy is a wrapper for the command line interface (cli) of HTCondor and enabl
 
 Installing:
 ============
+::
 
-  ::
     $ pip install condorpy
 
 
 Code Example:
 ============
+::
 
-  ::
     >>> from condorpy import Job, Templates
     >>> job = Job('job_name', Templates.vanilla_transfer_files)
     >>> job.executable = 'job_script'
