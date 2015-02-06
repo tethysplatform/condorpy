@@ -1,4 +1,10 @@
-__author__ = 'sdc50'
+# Copyright (c) 2015 Scott Christensen
+#
+# This file is part of condorpy
+#
+# condorpy is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
+# should have be distributed with this file.
 
 from node import Node
 import subprocess, re

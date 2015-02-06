@@ -1,7 +1,15 @@
+# Copyright (c) 2015 Scott Christensen
+#
+# This file is part of condorpy
+#
+# condorpy is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
+# should have be distributed with this file.
+
 from setuptools import setup, find_packages
 import os
 
-with open(os.path.join(os.path.dirname(__file__), 'README.md')) as readme:
+with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
 
 # allow setup.py to be run from any path
@@ -29,9 +37,9 @@ setup(
     # metadata for upload to PyPI
     author = "Scott Christensen",
     author_email = "sdc50@byu.net",
-    description = "A package for creating and submitting jobs to HTCondor",
+    description = "A Python wrapper for HTCondor's cli",
     long_description=README,
-    license = "PSF",
+    license = "BSD 2-Clause License",
     keywords = "htcondor distributed-computing job-scheduling",
     url = "https://bitbucket.org/sdc50/condorpy/wiki/Home",   # project home page, if any
 

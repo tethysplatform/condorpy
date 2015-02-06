@@ -1,8 +1,11 @@
-'''
-Created on May 23, 2014
+# Copyright (c) 2015 Scott Christensen
+#
+# This file is part of condorpy
+#
+# condorpy is free software: you can redistribute it and/or modify it under
+# the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
+# should have be distributed with this file.
 
-@author: sdc50
-'''
 #TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
 #TODO: add ability to submit to remote schedulers
 
