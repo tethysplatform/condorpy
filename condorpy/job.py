@@ -234,10 +234,10 @@ class Job(object):
         """
         args = ['condor_wait']
         args.extend(options)
-        job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else self.cluster_id
+        job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else str(self.cluster_id)
         abs_log_file = os.path.join(self.initial_dir, self.log_file)
         args.extend([abs_log_file, job_id])
-
+        print args
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
 

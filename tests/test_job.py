@@ -184,7 +184,7 @@ class TestJob(unittest.TestCase):
         self.assertRaises(expected, actual)
 
     def test_wait(self):
-        pass
+        self.job.wait()
 
     def test_get(self):
         non_existent_attr = 'not-there'
