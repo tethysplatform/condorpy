@@ -75,6 +75,16 @@ class Workflow(object):
         assert isinstance(node, Node)
         self._node_set.add(node)
 
+    def add_job(self, job):
+        """
+
+        :param job:
+        :return:
+        """
+        node = Node(job)
+        self.add_node(node)
+        return node
+
     def submit(self, options=[]):
         """
         ensures that all relatives of nodes in node_set are also added to the set before submitting
