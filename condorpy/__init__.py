@@ -7,7 +7,8 @@
 # should have be distributed with this file.
 
 from job import Job
-from dag import DAG, Node
+from workflow import Workflow, DAG
+from node import Node
 from templates import Templates
 Templates = Templates()
 Templates.load()

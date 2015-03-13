@@ -33,7 +33,9 @@ class TestJob(unittest.TestCase):
                     '_attributes': attributes,
                     '_num_jobs': 1,
                     '_cluster_id': 0,
-                    '_job_file': ''}
+                    '_job_file': '',
+                    '_remote': None,
+                    '_remote_input_files': None}
         actual = self.job.__dict__
         msg = 'testing initialization with default values'
         self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
@@ -45,11 +47,9 @@ class TestJob(unittest.TestCase):
         attributes['executable'] = exe
         attributes['arguments'] = args
 
-        expected = {'_name': self.job_name,
+        expected.update({'_name': self.job_name,
                     '_attributes': attributes,
-                    '_num_jobs': int(num_jobs),
-                    '_cluster_id': 0,
-                    '_job_file': ''}
+                    '_num_jobs': int(num_jobs)})
         actual = self.job.__dict__
         msg = 'testing initialization with all values supplied'
         self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
@@ -157,7 +157,7 @@ class TestJob(unittest.TestCase):
 
     def test_log_file(self):
         self.job = Job(self.job_name, Templates.base)
-        log_file = '%s/%s.%s.log' % (self.job.logdir, self.job_name, self.job.cluster_id)
+        log_file = '%s/%s/%s.%s.log' % (self.job.initial_dir, self.job.logdir, self.job_name, self.job.cluster_id)
         expected = log_file
         actual = self.job.log_file
         msg = 'checking resolving attribute function for log file'
@@ -261,3 +261,17 @@ class TestJob(unittest.TestCase):
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
+
+
+'''
+import os
+os.chdir('sandbox')
+from condorpy import Job, Templates
+j = Job('remote_test', Templates.vanilla_transfer_files, 'copy_test.py', host='54.173.151.202', username='root', private_key='~/.tethyscluster/starcluster-east.pem')
+j.arguments = 'input.txt'
+j.remote_input_files = ['copy_test.py', 'input.txt']
+j.transfer_input_files = '../input.txt'
+j.submit()
+j.sync_remote_output()
+del j
+'''

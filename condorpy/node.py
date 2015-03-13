@@ -8,7 +8,6 @@
 
 from job import Job
 
-#TODO: add node type (DATA, JOB)
 class Node(object):
     """
 
@@ -242,7 +241,6 @@ class Node(object):
 
         if self in ancestors:
             raise
-        #TODO: make loop exception
         return ancestors
 
     def _get_all_descendants(self):
@@ -258,7 +256,6 @@ class Node(object):
 
         if self in descendants:
             raise
-            #TODO: make loop exception
         return descendants
 
     def _link_parent_nodes(self):

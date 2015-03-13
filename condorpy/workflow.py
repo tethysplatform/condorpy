@@ -9,9 +9,7 @@
 from node import Node
 import subprocess, re
 
-#TODO: set initialdir that overrides jobs' initaildir?
-
-class DAG(object):
+class Workflow(object):
     """
 
     """
@@ -135,3 +133,7 @@ class DAG(object):
         dag_file = open(self.dag_file, 'w')
         dag_file.write(self.__str__())
         dag_file.close()
+
+
+# For backwards compatibility
+DAG = Workflow

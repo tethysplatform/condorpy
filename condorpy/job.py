@@ -6,11 +6,10 @@
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have be distributed with this file.
 
-#TODO: add ability to get stats about the job (i.e. number of jobs, run time, etc.)
-#TODO: add ability to submit to remote schedulers
-
-import os, subprocess, re
+import os, subprocess, re, uuid
 from collections import OrderedDict
+from tethyscluster.sshutils import SSHClient
+from tethyscluster.exception import RemoteCommandFailed, SSHError
 
 class Job(object):
     """classdocs
@@ -20,7 +19,17 @@ class Job(object):
     """
 
 
-    def __init__(self, name, attributes=None, executable=None, arguments=None, num_jobs=1):
+    def __init__(self,
+                 name,
+                 attributes=None,
+                 executable=None,
+                 arguments=None,
+                 num_jobs=1,
+                 host=None,
+                 username=None,
+                 password=None,
+                 private_key=None,
+                 private_key_pass=None):
         """Constructor
 
         """
@@ -31,9 +40,15 @@ class Job(object):
         object.__setattr__(self, '_num_jobs', int(num_jobs))
         object.__setattr__(self, '_cluster_id', 0)
         object.__setattr__(self, '_job_file', '')
+        object.__setattr__(self, '_remote', None)
+        object.__setattr__(self, '_remote_input_files', None)
+        if host:
+            object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
+            object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
         self.job_name = name
         self.executable = executable
         self.arguments = arguments
+
 
 
     def __str__(self):
@@ -145,7 +160,6 @@ class Job(object):
 
         :return:
         """
-        #TODO: should the job file be just the name or the name and initdir?
         job_file_name = '%s.job' % (self.name)
         job_file_path = os.path.join(self.initial_dir, job_file_name)
         self._job_file = job_file_path
@@ -157,12 +171,11 @@ class Job(object):
 
         :return:
         """
-        #TODO: should the log file be just the name or the name and initdir?
         log_file = self.get('log')
         if not log_file:
             log_file = '%s.log' % (self.name)
             self.set('log', log_file)
-        return self._resolve_attribute('log')
+        return os.path.join(self.initial_dir, self._resolve_attribute('log'))
 
     @property
     def initial_dir(self):
@@ -172,8 +185,18 @@ class Job(object):
         """
         initial_dir = self._resolve_attribute('initialdir')
         if not initial_dir:
-            initial_dir = os.getcwd()
+            initial_dir = os.path.relpath(os.getcwd())
+        if self._remote and os.path.isabs(initial_dir):
+                raise Exception('Cannot define an absolute path as an initial_dir on a remote scheduler')
         return initial_dir
+
+    @property
+    def remote_input_files(self):
+        return self._remote_input_files
+
+    @remote_input_files.setter
+    def remote_input_files(self, files):
+        self._remote_input_files = files
 
     def submit(self, queue=None, options=[]):
         """docstring
@@ -191,9 +214,7 @@ class Job(object):
         args.extend(options)
         args.append(self.job_file)
 
-        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        out,err = process.communicate()
-
+        out, err = self._execute(args)
         if err:
             if re.match('WARNING',err):
                 print(err)
@@ -214,8 +235,7 @@ class Job(object):
         args.extend(options)
         job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else self.cluster_id
         args.append(job_id)
-        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        out,err = process.communicate()
+        out, err = self._execute(args)
         print(out,err)
 
     def edit(self):
@@ -238,11 +258,9 @@ class Job(object):
         args = ['condor_wait']
         args.extend(options)
         job_id = '%s.%s' % (self.cluster_id, job_num) if job_num else str(self.cluster_id)
-        abs_log_file = os.path.join(self.initial_dir, self.log_file)
+        abs_log_file = os.path.abspath(self.log_file)
         args.extend([abs_log_file, job_id])
-        print args
-        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        process.communicate()
+        out, err = self._execute(args)
 
     def get(self, attr, value=None):
         """get attribute from job file
@@ -267,12 +285,40 @@ class Job(object):
         """
         self.attributes.pop(attr)
 
+    def sync_remote_output(self):
+        self._copy_output_from_remote()
+
+    def _execute(self, args):
+        out = None
+        err = None
+        if self._remote:
+            cmd = ' '.join(args)
+            try:
+                cmd = 'cd %s && %s' % (self._remote_id, cmd)
+                out = '\n'.join(self._remote.execute(cmd))
+            except RemoteCommandFailed as e:
+                err = e.output
+            except SSHError as e:
+                err = e.msg
+        else:
+            process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
+            out,err = process.communicate()
+
+        return out, err
+
+    def _copy_input_files_to_remote(self):
+        self._remote.put(self.remote_input_files, self._remote_id)
+
+    def _copy_output_from_remote(self):
+        self._remote.get(os.path.join(self._remote_id, self.initial_dir))
 
     def _write_job_file(self):
         self._make_job_dirs()
-        job_file = open(self.job_file, 'w')
+        job_file = self._open(self.job_file, 'w')
         job_file.write(self.__str__())
         job_file.close()
+        if self._remote:
+            self._copy_input_files_to_remote()
 
     def _list_attributes(self):
         list = []
@@ -281,12 +327,21 @@ class Job(object):
                 list.append(k + ' = ' + str(v))
         return list
 
+    def _open(self, file_name, mode='w'):
+        if self._remote:
+            return self._remote.remote_file(os.path.join(self._remote_id,file_name), mode)
+        else:
+            return open(file_name, mode)
+
     def _make_dir(self, dir_name):
         """docstring
 
         """
         try:
-            os.makedirs(dir_name)
+            if self._remote:
+                self._remote.makedirs(os.path.join(self._remote_id,dir_name))
+            else:
+                os.makedirs(dir_name)
         except OSError:
             pass
 
@@ -320,6 +375,12 @@ class Job(object):
             return str(self.cluster_id)
 
         return self.get(match.group(1), match.group(0))
+
+    def __del__(self):
+        if self._remote:
+            self._remote.execute('rm -rf %s' % (self._remote_id,))
+            self._remote.close()
+            del self._remote
 
 
 

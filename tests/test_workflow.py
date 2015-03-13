@@ -1,5 +1,5 @@
 from unittest import TestCase
-from condorpy import Job, DAG, Node, Templates
+from condorpy import Job, Workflow, Node, Templates
 
 __author__ = 'sdc50'
 

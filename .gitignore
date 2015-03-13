@@ -3,6 +3,5 @@
 *.pyo
 .pydevproject
 test/.coverage
-references
-activate
+.activate
 

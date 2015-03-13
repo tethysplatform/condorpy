@@ -81,5 +81,4 @@ class Templates(object):
     @property
     def vanilla_nfs(self):
         vanilla_nfs = self.vanilla_base
-        #TODO: test nfs jobs
         return vanilla_nfs
