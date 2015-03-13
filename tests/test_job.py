@@ -144,7 +144,7 @@ class TestJob(unittest.TestCase):
 
     def test_job_file(self):
         job_file_name = '%s.job' % (self.job_name)
-        job_file = os.path.join(os.getcwd(), job_file_name)
+        job_file = os.path.join(os.path.relpath(os.getcwd()), job_file_name)
         expected = job_file
         actual = self.job.job_file
         msg = 'checking resolving attribute function for job file'
