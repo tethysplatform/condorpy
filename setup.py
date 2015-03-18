@@ -4,7 +4,7 @@
 #
 # condorpy is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
-# should have be distributed with this file.
+# should have been distributed with this file.
 
 from setuptools import setup, find_packages
 import os
@@ -41,7 +41,7 @@ setup(
     long_description=README,
     license = "BSD 2-Clause License",
     keywords = "htcondor distributed-computing job-scheduling",
-    url = "https://bitbucket.org/sdc50/condorpy/wiki/Home",   # project home page, if any
+    url = "http://ci-water.github.io/condorpy/",
 
     # could also include download_url, classifiers, etc.
 )
