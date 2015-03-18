@@ -1,7 +1,0 @@
-*.class
-*.pyc
-*.pyo
-.pydevproject
-test/.coverage
-.activate
-
