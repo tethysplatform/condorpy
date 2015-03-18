@@ -12,7 +12,7 @@ from tethyscluster.sshutils import SSHClient
 from tethyscluster.exception import RemoteCommandFailed, SSHError
 
 class Job(object):
-    """classdocs
+    """Represents a HTCondor
 
     http://research.cs.wisc.edu/htcondor/manual/v7.8/condor_submit.html#man-condor-submit
 
