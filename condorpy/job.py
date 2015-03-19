@@ -412,7 +412,7 @@ class Job(object):
             str: The resolved value of 'attribute'.
 
         """
-        value = self.get(attribute)
+        value = self.attributes[attribute]
         if not value:
             return None
         resolved_value = re.sub('\$\((.*?)\)',self._resolve_attribute_match, value)
