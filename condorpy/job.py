@@ -325,6 +325,12 @@ class Job(object):
             value (str): The value to assign to 'attr'.
 
         """
+        if value is False:
+            value = 'false'
+        elif value is True:
+            value = 'true'
+        elif isinstance(value, list):
+            value = ', '.join([str(i) for i in value])
         self.attributes[attr] = value
 
     def delete(self, attr):
