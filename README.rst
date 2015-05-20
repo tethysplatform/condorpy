@@ -1,11 +1,11 @@
-===================
-CondorPy v0.0.0
-===================
+========
+CondorPy
+========
 :condorpy: Python interface for high throughput computing with HTCondor
 :Version: 0.0.0
 :Author: Scott Christensen
-:Team: CI-Water
-:Homepage: http://ci-water.org
+:Team: CI-WATER
+:Homepage: http://ci-water.github.io/condorpy/
 :License: BSD 2-Clause
 
 Description:
@@ -13,14 +13,14 @@ Description:
 Condorpy is a wrapper for the command line interface (cli) of HTCondor and enables creating submitting and monitoring HTCondor jobs from Python. HTCondor must be installed to use condorpy.
 
 Installing:
-============
+===========
 ::
 
     $ pip install condorpy
 
 
 Code Example:
-============
+=============
 ::
 
     >>> from condorpy import Job, Templates

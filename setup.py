@@ -15,9 +15,18 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
+def get_version():
+    import re
+    with open('README.rst','r') as f:
+        text = f.read()
+        version = re.search(':Version: ([\.?\d]*)',text).group(1)
+        return version
+
+VERSION = get_version()
+
 setup(
     name = "condorpy",
-    version = "0.0.0",
+    version = VERSION,
     packages = find_packages(),
     #scripts = ['say_hello.py'],
 
