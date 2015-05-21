@@ -8,6 +8,8 @@
 
 import os, subprocess, re, uuid
 from collections import OrderedDict
+from logger import log
+
 from tethyscluster.sshutils import SSHClient
 from tethyscluster.exception import RemoteCommandFailed, SSHError
 
@@ -222,6 +224,7 @@ class Job(object):
         """
 
         if not self.executable:
+            log.error('Job %s was submitted with no executable', self.name)
             raise NoExecutable('You cannot submit a job without an executable')
 
         self._num_jobs = queue or self.num_jobs
@@ -232,6 +235,7 @@ class Job(object):
         args.extend(options)
         args.append(self.job_file)
 
+        log.info('Submitting job %s with options: %s', self.name, args)
         out, err = self._execute(args)
         if err:
             if re.match('WARNING',err):
@@ -395,12 +399,13 @@ class Job(object):
 
     def _make_dir(self, dir_name):
         try:
+            log.info('making directory %s', dir_name)
             if self._remote:
                 self._remote.makedirs(os.path.join(self._remote_id,dir_name))
             else:
                 os.makedirs(dir_name)
         except OSError:
-            pass
+            log.warn('Unable to create directory %s. It may already exist.', dir_name)
 
     def _make_job_dirs(self):
         self._make_dir(self.initial_dir)
