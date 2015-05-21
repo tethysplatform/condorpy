@@ -37,7 +37,7 @@ formatter = logging.Formatter('%(levelname)-8s %(message)s -- Module: %(module)s
 debugger.setFormatter(formatter)
 
 # define a Handler which logs all messages to a file
-log_file = logging.FileHandler('example.log', mode='w')
+log_file = logging.FileHandler('condorpy.log', mode='w')
 log_file.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 log_file.setFormatter(formatter)
