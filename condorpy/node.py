@@ -7,6 +7,8 @@
 # should have been distributed with this file.
 
 from job import Job
+from logger import log
+from exceptions import CircularDependency
 
 class Node(object):
     """
@@ -77,7 +79,7 @@ class Node(object):
         if isinstance(job, Job):
             self._job = job
         else:
-            raise TypeError
+            raise TypeError('%s is not of type Job' % (str(job),))
 
     @property
     def pre_script(self):
@@ -240,13 +242,14 @@ class Node(object):
             ancestors = ancestors.union(parent._get_all_ancestors())
 
         if self in ancestors:
-            raise
+            log.error('circular dependancy found in %s. Ancestors: %s ', self, ancestors)
+            raise CircularDependency('Node %s contains itself in it\'s list of dependencies.' % (self.job.name,))
         return ancestors
 
     def _get_all_descendants(self):
         """
         traverses all descendants nodes
-        :raises: LoopException if self is contained in descendants
+        :raises: CircularDependency if self is contained in descendants
         :return: a set containing all descendant nodes
         """
         descendants = set()
@@ -255,7 +258,8 @@ class Node(object):
             descendants = descendants.union(child._get_all_descendants())
 
         if self in descendants:
-            raise
+            log.error('circular dependancy found in %s. Descendants: %s ', self, descendants)
+            raise CircularDependency('Node %s contains itself in it\'s list of dependencies.' % (self.job.name,))
         return descendants
 
     def _link_parent_nodes(self):

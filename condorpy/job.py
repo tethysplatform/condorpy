@@ -9,6 +9,7 @@
 import os, subprocess, re, uuid
 from collections import OrderedDict
 from logger import log
+from exceptions import NoExecutable, RemoteError, HTCondorError
 
 from tethyscluster.sshutils import SSHClient
 from tethyscluster.exception import RemoteCommandFailed, SSHError
@@ -185,7 +186,7 @@ class Job(object):
         if not initial_dir:
             initial_dir = os.path.relpath(os.getcwd())
         if self._remote and os.path.isabs(initial_dir):
-                raise Exception('Cannot define an absolute path as an initial_dir on a remote scheduler')
+                raise RemoteError('Cannot define an absolute path as an initial_dir on a remote scheduler')
         return initial_dir
 
     @property
@@ -241,7 +242,7 @@ class Job(object):
             if re.match('WARNING',err):
                 print(err)
             else:
-                raise Exception(err)
+                raise HTCondorError(err)
         print(out)
         try:
             self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
@@ -449,14 +450,3 @@ class Job(object):
             self._remote.execute('rm -rf %s' % (self._remote_id,))
             self._remote.close()
             del self._remote
-
-
-
-class NoExecutable(Exception):
-    """docstring
-
-    """
-    pass
-
-
-
