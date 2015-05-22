@@ -4,9 +4,10 @@
 #
 # condorpy is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
-# should have be distributed with this file.
+# should have been distributed with this file.
 
 from node import Node
+from exceptions import HTCondorError
 import subprocess, re
 
 class Workflow(object):
@@ -23,7 +24,7 @@ class Workflow(object):
     def __str__(self):
         """
         """
-        self.complete_set()
+        self.complete_node_set()
         jobs = ''
         scripts = ''
         relationships = ''
@@ -75,11 +76,21 @@ class Workflow(object):
         assert isinstance(node, Node)
         self._node_set.add(node)
 
+    def add_job(self, job):
+        """
+
+        :param job:
+        :return:
+        """
+        node = Node(job)
+        self.add_node(node)
+        return node
+
     def submit(self, options=[]):
         """
         ensures that all relatives of nodes in node_set are also added to the set before submitting
         """
-        self.complete_set()
+        self.complete_node_set()
         self._write_dag_file()
         for node in self._node_set:
             node.job.set('log', node.job.log_file)
@@ -96,7 +107,7 @@ class Workflow(object):
             if re.match('WARNING',err):
                 print(err)
             else:
-                raise Exception(err)
+                raise HTCondorError(err)
         print(out)
         try:
             self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
@@ -117,7 +128,7 @@ class Workflow(object):
         process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
         process.communicate()
 
-    def complete_set(self):
+    def complete_node_set(self):
         """
         """
         complete_node_set = set()

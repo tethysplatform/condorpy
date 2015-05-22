@@ -144,7 +144,7 @@ class TestJob(unittest.TestCase):
 
     def test_job_file(self):
         job_file_name = '%s.job' % (self.job_name)
-        job_file = os.path.join(os.getcwd(), job_file_name)
+        job_file = os.path.join(os.path.relpath(os.getcwd()), job_file_name)
         expected = job_file
         actual = self.job.job_file
         msg = 'checking resolving attribute function for job file'
@@ -223,6 +223,30 @@ class TestJob(unittest.TestCase):
         expected = new_value
         actual = self.job.attributes[key]
         msg = 'testing that attribute that previously existed is re-set correctly'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        key = 'python boolean'
+        value = True
+        self.job.set(key, value)
+        expected = 'true'
+        actual = self.job.attributes[key]
+        msg = 'testing that an attribute can be set with the Python boolean value "True"'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        key = 'python boolean'
+        value = False
+        self.job.set(key, value)
+        expected = 'false'
+        actual = self.job.attributes[key]
+        msg = 'testing that an attribute can be set with the Python boolean value "False"'
+        self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+
+        key = 'python list'
+        value = ['file.txt', 1]
+        self.job.set(key, value)
+        expected = ', '.join([str(i) for i in value])
+        actual = self.job.attributes[key]
+        msg = 'testing that an attribute can be set with a Python list'
         self.assertEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
 
     def test_delete(self):
