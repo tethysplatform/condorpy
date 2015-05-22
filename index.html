@@ -3,8 +3,72 @@
 <head lang="en">
     <meta charset="UTF-8">
     <title>CondorPy</title>
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-This is the home page for CondorPy!
+    <header>
+        <div><h1>CondorPy</h1></div>
+        <div class="nav">
+            <nav>
+                <a href="http://condorpy.readthedocs.org/">Documentation</a> |
+                <a href="https://pypi.python.org/pypi/condorpy">PyPI</a> |
+                <a href="https://github.com/CI-WATER/condorpy">GitHub Repo</a>
+                <!--<a href="http://ci-water.org">CI-WATER</a> |-->
+                <!--<a href="http://tethys.ci-water.org">Tethys Platform</a>-->
+            </nav>
+        </div>
+
+    </header>
+    <div class="banner">
+        <h1>This is the home page for CondorPy!</h1>
+    </div>
+
+    <article>
+        <table frame="void" rules="none">
+            <tbody valign="top">
+                <tr><th>condorpy:</th><td>Python interface for high throughput computing with HTCondor</td>
+                </tr>
+                <tr><th>Version:</th>
+                <td>0.0.0</td></tr>
+                <tr><th>Author:</th>
+                <td>Scott Christensen</td></tr>
+                <tr><th>Team:</th><td>CI-Water</td>
+                </tr>
+                <tr><th>Homepage:</th><td><a href="http://ci-water.github.io/condorpy/">http://ci-water.github.io/condorpy/</a></td>
+                </tr>
+                <tr><th>License:</th><td>BSD 2-Clause</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <a name="user-content-description"></a>
+        <h2><a id="user-content-description" class="anchor" href="#description" aria-hidden="true"><span class="octicon octicon-link"></span></a>Description:</h2>
+        <p>Condorpy is a wrapper for the command line interface (cli) of HTCondor and enables creating submitting and monitoring HTCondor jobs from Python. HTCondor must be installed to use condorpy.</p>
+
+        <h2>Installing:</h2>
+        <div class="code">
+            <code>
+            <pre>$ pip install condorpy</pre>
+        </code>
+        </div>
+
+
+        <h2>Code Example:</h2>
+        <div class="code">
+            <code>
+            <pre>&gt;&gt;&gt; from condorpy import Job, Templates
+&gt;&gt;&gt; job = Job('job_name', Templates.vanilla_transfer_files)
+&gt;&gt;&gt; job.executable = 'job_script'
+&gt;&gt;&gt; jobs.arguments = 'input_1 input_2'
+&gt;&gt;&gt; job.transfer_input_files = 'input_1 input_2'
+&gt;&gt;&gt; job.transfer_output_files = 'output'
+&gt;&gt;&gt; job.submit()</pre>
+        </code>
+        </div>
+
+
+
+    </article>
+
 </body>
 </html>

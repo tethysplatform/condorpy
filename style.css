@@ -1,0 +1,58 @@
+html,body{
+    height: 100%;
+    margin: 0;
+}
+header{
+    height: 80px;
+    width: 100%;
+    padding: 10px;
+    position: fixed;
+    top: 0;
+    background-color: #ffffff;
+    border-bottom: 1px solid gray;
+}
+
+header div{
+    display: inline-block;
+    padding-left: 100px;
+    padding-right: 100px;
+}
+header .nav{
+    padding-left: 500px;
+}
+
+.banner{
+    margin-top: 80px;
+    height: 200px;
+    background-color: #8b0000;
+    padding: 50px;
+    padding-left: 20%;
+    color: #ffffff;
+}
+
+article{
+    padding: 50px;
+    margin: auto;
+    width: 800px;
+}
+
+table {
+    border: 1px solid gray;
+    /*border-radius: 10px;*/
+}
+
+td, th{
+    padding: 10px;
+    border: 1px solid gray;
+}
+
+table tr:nth-child(even){
+    background-color: #eeeeee;
+}
+
+.code{
+    padding: 10px;
+    background-color: #eeeeee;
+    border: 1px solid black;
+    border-radius: 10px;
+}
