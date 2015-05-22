@@ -7,7 +7,7 @@
 # should have been distributed with this file.
 
 from setuptools import setup, find_packages
-import os
+import os, re
 
 with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
     README = readme.read()
@@ -15,14 +15,7 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
-def get_version():
-    import re
-    with open('README.rst','r') as f:
-        text = f.read()
-        version = re.search(':Version: ([\.?\d]*)',text).group(1)
-        return version
-
-VERSION = get_version()
+VERSION = re.search(':Version: ([\.?\d]*)',README).group(1)
 
 setup(
     name = "condorpy",
