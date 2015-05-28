@@ -8,6 +8,8 @@
 
 import os, subprocess, re, uuid
 from collections import OrderedDict
+
+from static import CONDOR_JOB_STATUSES
 from logger import log
 from exceptions import NoExecutable, RemoteError, HTCondorError
 
@@ -172,6 +174,13 @@ class Job(object):
         return self._cluster_id
 
     @property
+    def status(self):
+        """The job status
+
+        """
+        return self._update_status()
+
+    @property
     def job_file(self):
         """The path to the submit description file representing this job.
 
@@ -297,14 +306,29 @@ class Job(object):
         """
         raise NotImplementedError("This method is not yet implemented")
 
-    def status(self):
+    def _update_status(self, sub_job_num=None):
         """Gets the job status.
 
-        Note:
-            This method is not implemented.
+        Return:
+            str: The current status of the job
 
         """
-        raise NotImplementedError("This method is not yet implemented")
+        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        format = '-format "%d" JobStatus'
+        args = ['condor_q', job_id, format]
+        out, err = self._execute(args)
+        if err:
+            raise HTCondorError(err)
+        if not out:
+            args = ['condor_history', job_id, format]
+            out, err = self._execute(args)
+        if err:
+            raise HTCondorError(err)
+        log.info('Job %s status: %s', job_id, out)
+        if not out:
+            raise HTCondorError('Job not found.')
+        status_code = int(out)
+        return CONDOR_JOB_STATUSES[status_code]
 
     def wait(self, options=[], sub_job_num=None):
         """Wait for the job, or a sub-job to complete.

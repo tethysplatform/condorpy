@@ -300,6 +300,7 @@ j = Job('remote_test',
         transfer_input_files = '../input.txt',
         working_directory='sandbox')
 j.submit()
+print j.status
 j.wait()
 j.sync_remote_output()
 del j
