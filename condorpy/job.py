@@ -61,7 +61,9 @@ class Job(object):
                  username=None,
                  password=None,
                  private_key=None,
-                 private_key_pass=None):
+                 private_key_pass=None,
+                 remote_input_files=None,
+                 **kwargs):
 
         object.__setattr__(self, '_name', name)
         if attributes:
@@ -71,13 +73,15 @@ class Job(object):
         object.__setattr__(self, '_cluster_id', 0)
         object.__setattr__(self, '_job_file', '')
         object.__setattr__(self, '_remote', None)
-        object.__setattr__(self, '_remote_input_files', None)
+        object.__setattr__(self, '_remote_input_files', remote_input_files or None)
         if host:
             object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
             object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
         self.job_name = name
         self.executable = executable
         self.arguments = arguments
+        if kwargs:
+            self.attributes.update(kwargs)
 
 
 

@@ -286,18 +286,20 @@ if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
 
-
+#the following code is for testing remote submission
 '''
 import os
 os.chdir('sandbox')
 from condorpy import Job, Templates
-host = 'ec2-54-88-138-122.compute-1.amazonaws.com'
-username = 'tethysadmin'
-private_key = '~/.tethyscluster/starcluster.pem'
-j = Job('remote_test', Templates.vanilla_transfer_files, 'copy_test.py', host=host, username=username, private_key=private_key)
-j.arguments = 'input.txt'
-j.remote_input_files = ['copy_test.py', 'input.txt']
-j.transfer_input_files = '../input.txt'
+j = Job('remote_test',
+        Templates.vanilla_transfer_files,
+        'copy_test.py',
+        'input.txt',
+        host = 'ec2-54-88-138-122.compute-1.amazonaws.com',
+        username = 'tethysadmin',
+        private_key = '~/.tethyscluster/starcluster.pem',
+        remote_input_files = ['copy_test.py', 'input.txt'],
+        transfer_input_files = '../input.txt')
 j.submit()
 j.wait()
 j.sync_remote_output()
