@@ -8,7 +8,7 @@
 
 import logging
 
-DEBUGGING = True
+DEBUGGING = False
 LOGGING_LEVEL = logging.WARN
 
 class DebugFilter(object):
@@ -42,8 +42,8 @@ log_file.setLevel(logging.DEBUG)
 formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
 log_file.setFormatter(formatter)
 
-# add the handlers to the root logger
-log = logging.getLogger()
+# add the handlers to logger
+log = logging.getLogger('condorpy')
 log.setLevel(logging.DEBUG)
 log.addHandler(debugger)
 log.addHandler(console)
