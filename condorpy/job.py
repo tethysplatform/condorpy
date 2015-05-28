@@ -63,6 +63,7 @@ class Job(object):
                  private_key=None,
                  private_key_pass=None,
                  remote_input_files=None,
+                 working_directory='.',
                  **kwargs):
 
         object.__setattr__(self, '_name', name)
@@ -74,6 +75,7 @@ class Job(object):
         object.__setattr__(self, '_job_file', '')
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_input_files', remote_input_files or None)
+        object.__setattr__(self, '_cwd', working_directory)
         if host:
             object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
             object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
@@ -124,6 +126,21 @@ class Job(object):
             object.__setattr__(self, key, value)
         else:
             self.set(key, value)
+
+    def set_cwd(fn):
+        """Decorator to set the specified working directory to execute the function, and then restore the previous cwd.
+        """
+        def wrapped(self, *args, **kwargs):
+            log.info('Calling function: %s with args=%s', fn, args if args else [])
+            cwd = os.getcwd()
+            log.info('Saved cwd: %s', cwd)
+            os.chdir(self._cwd)
+            log.info('Changing working directory to: %s', self._cwd)
+            result = fn(self, *args, **kwargs)
+            os.chdir(cwd)
+            log.info('Restored working directory to: %s', os.getcwd())
+            return result
+        return wrapped
 
     @property
     def name(self):
@@ -188,7 +205,7 @@ class Job(object):
         """
         initial_dir = self.get('initialdir')
         if not initial_dir:
-            initial_dir = os.path.relpath(os.getcwd())
+            initial_dir = os.curdir
         if self._remote and os.path.isabs(initial_dir):
                 raise RemoteError('Cannot define an absolute path as an initial_dir on a remote scheduler')
         return initial_dir
@@ -361,6 +378,7 @@ class Job(object):
         """
         self._copy_output_from_remote()
 
+    @set_cwd
     def _execute(self, args):
         out = None
         err = None
@@ -382,9 +400,11 @@ class Job(object):
         log.info('Execute results - out: %s, err: %s', out, err)
         return out, err
 
+    @set_cwd
     def _copy_input_files_to_remote(self):
         self._remote.put(self.remote_input_files, self._remote_id)
 
+    @set_cwd
     def _copy_output_from_remote(self):
         self._remote.get(os.path.join(self._remote_id, self.initial_dir))
 
@@ -409,6 +429,7 @@ class Job(object):
         else:
             return open(file_name, mode)
 
+    @set_cwd
     def _make_dir(self, dir_name):
         try:
             log.info('making directory %s', dir_name)

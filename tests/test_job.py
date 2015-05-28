@@ -288,8 +288,6 @@ if __name__ == "__main__":
 
 #the following code is for testing remote submission
 '''
-import os
-os.chdir('sandbox')
 from condorpy import Job, Templates
 j = Job('remote_test',
         Templates.vanilla_transfer_files,
@@ -299,7 +297,8 @@ j = Job('remote_test',
         username = 'tethysadmin',
         private_key = '~/.tethyscluster/starcluster.pem',
         remote_input_files = ['copy_test.py', 'input.txt'],
-        transfer_input_files = '../input.txt')
+        transfer_input_files = '../input.txt',
+        working_directory='sandbox')
 j.submit()
 j.wait()
 j.sync_remote_output()
