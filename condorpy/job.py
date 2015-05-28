@@ -297,9 +297,13 @@ class Job(object):
         args = ['condor_wait']
         args.extend(options)
         job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
-        abs_log_file = os.path.abspath(self.log_file)
+        if self._remote:
+            abs_log_file = self.log_file
+        else:
+            abs_log_file = os.path.abspath(self.log_file)
         args.extend([abs_log_file, job_id])
         out, err = self._execute(args)
+        return out, err
 
     def get(self, attr, value=None, resolve=True):
         """Get the value of an attribute from submit description file.
@@ -357,6 +361,7 @@ class Job(object):
         out = None
         err = None
         if self._remote:
+            log.info('Executing remote command %s', ' '.join(args))
             cmd = ' '.join(args)
             try:
                 cmd = 'cd %s && %s' % (self._remote_id, cmd)
@@ -366,9 +371,11 @@ class Job(object):
             except SSHError as e:
                 err = e.msg
         else:
+            log.info('Executing local command %s', ' '.join(args))
             process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
             out,err = process.communicate()
 
+        log.info('Execute results - out: %s, err: %s', out, err)
         return out, err
 
     def _copy_input_files_to_remote(self):
