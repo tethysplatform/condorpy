@@ -23,24 +23,24 @@ class DebugFilter(object):
 #                     filename='example.log',
 #                     filemode='w')
 
-# define a Handler which writes INFO messages or higher to the sys.stderr
-console = logging.StreamHandler()
-console.setLevel(LOGGING_LEVEL)
-formatter = logging.Formatter('%(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-
-# define a Handler which writes DEBUG messages to sys.stderr
-debugger = logging.StreamHandler()
-debugger.setLevel(logging.DEBUG)
-debugger.addFilter(DebugFilter())
-formatter = logging.Formatter('%(levelname)-8s %(message)s -- Module: %(module)s in %(funcName)s, line %(lineno)d')
-debugger.setFormatter(formatter)
-
-# define a Handler which logs all messages to a file
-log_file = logging.FileHandler('condorpy.log', mode='w')
-log_file.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-log_file.setFormatter(formatter)
+# # define a Handler which writes INFO messages or higher to the sys.stderr
+# console = logging.StreamHandler()
+# console.setLevel(LOGGING_LEVEL)
+# formatter = logging.Formatter('%(levelname)-8s %(message)s')
+# console.setFormatter(formatter)
+#
+# # define a Handler which writes DEBUG messages to sys.stderr
+# debugger = logging.StreamHandler()
+# debugger.setLevel(logging.DEBUG)
+# debugger.addFilter(DebugFilter())
+# formatter = logging.Formatter('%(levelname)-8s %(message)s -- Module: %(module)s in %(funcName)s, line %(lineno)d')
+# debugger.setFormatter(formatter)
+#
+# # define a Handler which logs all messages to a file
+# log_file = logging.FileHandler('condorpy.log', mode='w')
+# log_file.setLevel(logging.DEBUG)
+# formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+# log_file.setFormatter(formatter)
 
 # add the handlers to logger
 log = logging.getLogger('condorpy')

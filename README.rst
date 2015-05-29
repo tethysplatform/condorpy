@@ -2,7 +2,7 @@
 CondorPy
 ========
 :condorpy: Python interface for high throughput computing with HTCondor
-:Version: 0.1.5
+:Version: 0.1.6
 :Author: Scott Christensen
 :Team: CI-WATER
 :Homepage: http://ci-water.github.io/condorpy/
