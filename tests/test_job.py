@@ -293,7 +293,7 @@ j = Job('remote_test',
         Templates.vanilla_transfer_files,
         'copy_test.py',
         'input.txt',
-        host = 'ec2-54-88-138-122.compute-1.amazonaws.com',
+        host = '54.152.187.199',
         username = 'tethysadmin',
         private_key = '~/.tethyscluster/starcluster.pem',
         remote_input_files = ['copy_test.py', 'input.txt'],
@@ -303,5 +303,5 @@ j.submit()
 print j.status
 j.wait()
 j.sync_remote_output()
-del j
+j.close_remote()
 '''

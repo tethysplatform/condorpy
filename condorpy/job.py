@@ -498,7 +498,7 @@ class Job(object):
 
         return self.get(match.group(1), match.group(0))
 
-    def __del__(self):
+    def close_remote(self):
         """Cleans up and closes connection to remote server if defined.
 
         """
