@@ -49,6 +49,8 @@ class Job(object):
         private_key (str, optional): The path to a private key file providing passwordless ssh on 'host'.
             Defaults to None.
         private_key_pass (str, optional): The passphrase for the 'private_key' if required.
+        remote_input_files (list, optional): A list of files to be copied to a remote server for remote job submission.
+        working_directory (str, optional): The file path where execute calls should be run from.
 
     """
 
@@ -85,9 +87,8 @@ class Job(object):
         self.executable = executable
         self.arguments = arguments
         if kwargs:
-            self.attributes.update(kwargs)
-
-
+            for attr, value in kwargs.iteritems():
+                self.set(attr, value)
 
     def __str__(self):
         return '\n'.join(self._list_attributes()) + '\n\nqueue %d\n' % (self.num_jobs)
@@ -107,7 +108,8 @@ class Job(object):
         return copy
 
     def __getattr__(self, item):
-        """A shortcut for the 'get' method.
+        """
+        A shortcut for the 'get' method.
 
         Args:
             item (str): The name of the attribute to get.
@@ -118,7 +120,8 @@ class Job(object):
         return self.get(item)
 
     def __setattr__(self, key, value):
-        """A shortcut for the 'set' method.
+        """
+        A shortcut for the 'set' method.
 
         Args:
             key (str): The name of the attribute to set.
@@ -130,7 +133,8 @@ class Job(object):
             self.set(key, value)
 
     def set_cwd(fn):
-        """Decorator to set the specified working directory to execute the function, and then restore the previous cwd.
+        """
+        Decorator to set the specified working directory to execute the function, and then restore the previous cwd.
         """
         def wrapped(self, *args, **kwargs):
             log.info('Calling function: %s with args=%s', fn, args if args else [])
@@ -178,6 +182,19 @@ class Job(object):
         """The job status
 
         """
+        status_dict = self.statuses
+        #determin job status
+        status = "Various"
+        for key,val in status_dict.iteritems():
+            if val == self.num_jobs:
+                status = key
+        return status
+
+    @property
+    def statuses(self):
+        """
+        Return dictionary of all process statuses
+        """
         return self._update_status()
 
     @property
@@ -210,6 +227,7 @@ class Job(object):
 
         Note:
             The executable file is defined relative to the current working directory, NOT to the initial directory.
+            The initial directory is created in the current working directory.
 
         """
         initial_dir = self.get('initialdir')
@@ -221,26 +239,26 @@ class Job(object):
 
     @property
     def remote_input_files(self):
-        """A list of file to be copied to a remote server for remote job submission.
+        """A list of paths to files or directories to be copied to a remote server for remote job submission.
 
         """
         return self._remote_input_files
 
     @remote_input_files.setter
     def remote_input_files(self, files):
-        """A list of file to be copied to a remote server for remote job submission.
+        """A list of paths to files or directories to be copied to a remote server for remote job submission.
 
         Args:
-            files (list of strings): A list of file paths to all input files and the executable that are required to
-                be copied to the remote server when submitting the job remotely.
+            files (list or tuple of strings): A list or tuple of file paths to all input files and the executable that
+            are required to be copied to the remote server when submitting the job remotely.
 
         Note:
             File paths defined for remote_input_files should be relative to the current working directory on the
-            client machine. Input file paths defined for the submit description file should be relative to the
-            initial directory on the remote server.
+            client machine. They are copied into the working directory on the remote. Input file paths defined for
+            the submit description file should be relative to the initial directory on the remote server.
 
         """
-        self._remote_input_files = files
+        self._remote_input_files = list(files)
 
     def submit(self, queue=None, options=[]):
         """Submits the job either locally or to a remote server if it is defined.
@@ -306,30 +324,6 @@ class Job(object):
         """
         raise NotImplementedError("This method is not yet implemented")
 
-    def _update_status(self, sub_job_num=None):
-        """Gets the job status.
-
-        Return:
-            str: The current status of the job
-
-        """
-        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
-        format = '-format "%d" JobStatus'
-        args = ['condor_q', job_id, format]
-        out, err = self._execute(args)
-        if err:
-            raise HTCondorError(err)
-        if not out:
-            args = ['condor_history', job_id, format]
-            out, err = self._execute(args)
-        if err:
-            raise HTCondorError(err)
-        log.info('Job %s status: %s', job_id, out)
-        if not out:
-            raise HTCondorError('Job not found.')
-        status_code = int(out)
-        return CONDOR_JOB_STATUSES[status_code]
-
     def wait(self, options=[], sub_job_num=None):
         """Wait for the job, or a sub-job to complete.
 
@@ -383,7 +377,7 @@ class Job(object):
             value = 'false'
         elif value is True:
             value = 'true'
-        elif isinstance(value, list):
+        elif isinstance(value, list) or isinstance(value, tuple):
             value = ', '.join([str(i) for i in value])
         self.attributes[attr] = value
 
@@ -401,6 +395,50 @@ class Job(object):
 
         """
         self._copy_output_from_remote()
+
+    def _update_status(self, sub_job_num=None):
+        """Gets the job status.
+
+        Return:
+            str: The current status of the job
+
+        """
+        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        format = ['-format', '"%d"', 'JobStatus']
+        args = ['condor_q', job_id]
+        args.extend(format)
+        out, err = self._execute(args)
+        if err:
+            log.error('Error while updating status for job %s: %s', job_id, err)
+            raise HTCondorError(err)
+        if not out:
+            args = ['condor_history', job_id]
+            args.extend(format)
+            out, err = self._execute(args)
+        if err:
+            log.error('Error while updating status for job %s: %s', job_id, err)
+            raise HTCondorError(err)
+        if not out:
+            log.error('Error while updating status for job %s: Job not found.', job_id)
+            raise HTCondorError('Job not found.')
+
+        out = out.strip('\"')
+        log.info('Job %s status: %s', job_id, out)
+
+        if not sub_job_num:
+            assert len(out) == self.num_jobs
+
+        #initialize status dictionary
+        status_dict = dict()
+        for val in CONDOR_JOB_STATUSES.itervalues():
+            status_dict[val] = 0
+
+        for status_code_str in out:
+            status_code = int(status_code_str)
+            key = CONDOR_JOB_STATUSES[status_code]
+            status_dict[key] += 1
+
+        return status_dict
 
     @set_cwd
     def _execute(self, args):
@@ -432,6 +470,7 @@ class Job(object):
     def _copy_output_from_remote(self):
         self._remote.get(os.path.join(self._remote_id, self.initial_dir))
 
+    @set_cwd
     def _write_job_file(self):
         self._make_job_dirs()
         job_file = self._open(self.job_file, 'w')
