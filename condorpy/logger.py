@@ -26,7 +26,7 @@ class DebugFilter(object):
 # add the handlers to logger
 log = logging.getLogger('condorpy')
 log.setLevel(logging.DEBUG)
-log.addHandler(logging.NullHandler)
+log.addHandler(logging.NullHandler())
 
 def activate_debug_logging():
     # define a Handler which writes DEBUG messages to sys.stderr
