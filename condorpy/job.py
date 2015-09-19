@@ -368,17 +368,54 @@ class Job(object):
     def set(self, attr, value):
         """Set the value of an attribute in the submit description file.
 
+        The value can be passed in as a Python type (i.e. a list, a tuple or a Python boolean).
+        The Python values will be reformatted into strings based on the standards described in
+        the HTCondor manual: http://research.cs.wisc.edu/htcondor/manual/current/condor_submit.html
+
         Args:
             attr (str): The name of the attribute to set.
             value (str): The value to assign to 'attr'.
 
         """
+
+        def escape_new_syntax(value, double_quote_escape='"'):
+            value = str(value)
+            value = value.replace("'", "''")
+            value = value.replace('"', '%s"' % double_quote_escape)
+            if ' ' in value or '\t' in value:
+                value = "'%s'" % value
+            return value
+
+        def escape_new_syntax_pre_post_script(value):
+            return escape_new_syntax(value, '\\')
+
+        def escape_remap(value):
+            value = value.replace('=', '\=')
+            value = value.replace(';', '\;')
+            return value
+
+        def join_function_template(join_string, escape_func):
+            return lambda value: join_string.join([escape_func(i) for i in value])
+
+        def quote_join_function_template(join_string, escape_func):
+            return lambda value: join_function_template(join_string, escape_func)(value)
+
+        join_functions = {'rempas': quote_join_function_template('; ', escape_remap),
+                          'arguments': quote_join_function_template(' ', escape_new_syntax),
+                          'Arguments': quote_join_function_template(' ', escape_new_syntax_pre_post_script)
+                          }
+
         if value is False:
             value = 'false'
         elif value is True:
             value = 'true'
         elif isinstance(value, list) or isinstance(value, tuple):
-            value = ', '.join([str(i) for i in value])
+            join_function = join_function_template(', ', str)
+            for key in join_functions.keys():
+                if attr.endswith(key):
+                    join_function = join_functions[key]
+            value = join_function(value)
+
         self.attributes[attr] = value
 
     def delete(self, attr):
