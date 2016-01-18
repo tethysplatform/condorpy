@@ -310,7 +310,7 @@ class Job(object):
         """
         args = ['condor_rm']
         args.extend(options)
-        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else self.cluster_id
+        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
         args.append(job_id)
         out, err = self._execute(args)
         print(out,err)
@@ -579,6 +579,7 @@ class Job(object):
 
         """
         if self._remote:
+            self.remove()
             self._remote.execute('rm -rf %s' % (self._remote_id,))
             self._remote.close()
             del self._remote
