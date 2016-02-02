@@ -6,20 +6,30 @@
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have been distributed with this file.
 
+from htcondor_object_base import HTCondorObjectBase
 from node import Node
-from exceptions import HTCondorError
-import subprocess, re
+from logger import log
 
-class Workflow(object):
+
+class Workflow(HTCondorObjectBase):
     """
 
     """
-    def __init__(self,name):
+    def __init__(self,
+                 name,
+                 host=None,
+                 username=None,
+                 password=None,
+                 private_key=None,
+                 private_key_pass=None,
+                 remote_input_files=None,
+                 working_directory='.'):
         """
         """
         self._name = name
         self._dag_file = ""
         self._node_set = set()
+        super(Workflow, self).__init__(host, username, password, private_key, private_key_pass, remote_input_files, working_directory)
 
     def __str__(self):
         """
@@ -49,14 +59,6 @@ class Workflow(object):
         """
         """
         return self._name
-
-    @property
-    def cluster_id(self):
-        """
-
-        :return:
-        """
-        return self._cluster_id
 
     @property
     def node_set(self):
@@ -100,21 +102,8 @@ class Workflow(object):
         args.extend(options)
         args.append(self.dag_file)
 
-        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        out,err = process.communicate()
-
-        if err:
-            if re.match('WARNING',err):
-                print(err)
-            else:
-                raise HTCondorError(err)
-        print(out)
-        try:
-            self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
-        except:
-            self._cluster_id = -1
-
-        return self.cluster_id
+        log.info('Submitting workflow %s with options: %s', self.name, args)
+        return super(Workflow, self).submit(args)
 
     def wait(self, options=[]):
         """
@@ -125,8 +114,7 @@ class Workflow(object):
         args.extend(options)
         args.append('%s.dagman.log' % (self.dag_file))
 
-        process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-        process.communicate()
+        return self._execute(args)
 
     def complete_node_set(self):
         """

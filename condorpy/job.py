@@ -6,17 +6,16 @@
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have been distributed with this file.
 
-import os, subprocess, re, uuid
+import os
+import re
 from collections import OrderedDict
 
+from htcondor_object_base import HTCondorObjectBase
 from static import CONDOR_JOB_STATUSES
 from logger import log
 from exceptions import NoExecutable, RemoteError, HTCondorError
 
-from tethyscluster.sshutils import SSHClient
-from tethyscluster.exception import RemoteCommandFailed, SSHError
-
-class Job(object):
+class Job(HTCondorObjectBase):
     """Represents a HTCondor job and the submit description file.
 
     This class provides an object model representation for a computing job on HTCondor. It offers a wrapper for the
@@ -75,14 +74,9 @@ class Job(object):
             assert isinstance(attributes, dict)
         object.__setattr__(self, '_attributes', attributes or OrderedDict())
         object.__setattr__(self, '_num_jobs', int(num_jobs))
-        object.__setattr__(self, '_cluster_id', 0)
         object.__setattr__(self, '_job_file', '')
-        object.__setattr__(self, '_remote', None)
-        object.__setattr__(self, '_remote_input_files', remote_input_files or None)
-        object.__setattr__(self, '_cwd', working_directory)
-        if host:
-            object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
-            object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
+        super(Job, self).__init__(host, username, password, private_key, private_key_pass, remote_input_files, working_directory)
+
         self.job_name = name
         self.executable = executable
         self.arguments = arguments
@@ -132,22 +126,6 @@ class Job(object):
         else:
             self.set(key, value)
 
-    def set_cwd(fn):
-        """
-        Decorator to set the specified working directory to execute the function, and then restore the previous cwd.
-        """
-        def wrapped(self, *args, **kwargs):
-            log.info('Calling function: %s with args=%s', fn, args if args else [])
-            cwd = os.getcwd()
-            log.info('Saved cwd: %s', cwd)
-            os.chdir(self._cwd)
-            log.info('Changing working directory to: %s', self._cwd)
-            result = fn(self, *args, **kwargs)
-            os.chdir(cwd)
-            log.info('Restored working directory to: %s', os.getcwd())
-            return result
-        return wrapped
-
     @property
     def name(self):
 
@@ -169,13 +147,6 @@ class Job(object):
     @num_jobs.setter
     def num_jobs(self, num_jobs):
         self._num_jobs = int(num_jobs)
-
-    @property
-    def cluster_id(self):
-        """The id assigned to the job (called a cluster in HTConodr) when the job is submitted.
-
-        """
-        return self._cluster_id
 
     @property
     def status(self):
@@ -232,33 +203,10 @@ class Job(object):
         """
         initial_dir = self.get('initialdir')
         if not initial_dir:
-            initial_dir = os.curdir
+            initial_dir = os.curdir #TODO does this conflict with the working directory?
         if self._remote and os.path.isabs(initial_dir):
                 raise RemoteError('Cannot define an absolute path as an initial_dir on a remote scheduler')
         return initial_dir
-
-    @property
-    def remote_input_files(self):
-        """A list of paths to files or directories to be copied to a remote server for remote job submission.
-
-        """
-        return self._remote_input_files
-
-    @remote_input_files.setter
-    def remote_input_files(self, files):
-        """A list of paths to files or directories to be copied to a remote server for remote job submission.
-
-        Args:
-            files (list or tuple of strings): A list or tuple of file paths to all input files and the executable that
-            are required to be copied to the remote server when submitting the job remotely.
-
-        Note:
-            File paths defined for remote_input_files should be relative to the current working directory on the
-            client machine. They are copied into the working directory on the remote. Input file paths defined for
-            the submit description file should be relative to the initial directory on the remote server.
-
-        """
-        self._remote_input_files = list(files)
 
     def submit(self, queue=None, options=[]):
         """Submits the job either locally or to a remote server if it is defined.
@@ -285,18 +233,7 @@ class Job(object):
         args.append(self.job_file)
 
         log.info('Submitting job %s with options: %s', self.name, args)
-        out, err = self._execute(args)
-        if err:
-            if re.match('WARNING',err):
-                print(err)
-            else:
-                raise HTCondorError(err)
-        print(out)
-        try:
-            self._cluster_id = int(re.search('(?<=cluster |\*\* Proc )(\d*)', out).group(1))
-        except:
-            self._cluster_id = -1
-        return self.cluster_id
+        return super(Job, self).submit(args)
 
     def remove(self, options=[], sub_job_num=None):
         """Removes a job from the job queue, or from being executed.
@@ -313,7 +250,7 @@ class Job(object):
         job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
         args.append(job_id)
         out, err = self._execute(args)
-        print(out,err)
+        return out,err
 
     def edit(self):
         """Interface for CLI edit command.
@@ -427,12 +364,6 @@ class Job(object):
         """
         self.attributes.pop(attr)
 
-    def sync_remote_output(self):
-        """Sync the initial directory containing the output and log files with the remote server.
-
-        """
-        self._copy_output_from_remote()
-
     def _update_status(self, sub_job_num=None):
         """Gets the job status.
 
@@ -477,45 +408,6 @@ class Job(object):
 
         return status_dict
 
-    @set_cwd
-    def _execute(self, args):
-        out = None
-        err = None
-        if self._remote:
-            log.info('Executing remote command %s', ' '.join(args))
-            cmd = ' '.join(args)
-            try:
-                cmd = 'cd %s && %s' % (self._remote_id, cmd)
-                out = '\n'.join(self._remote.execute(cmd))
-            except RemoteCommandFailed as e:
-                err = e.output
-            except SSHError as e:
-                err = e.msg
-        else:
-            log.info('Executing local command %s', ' '.join(args))
-            process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-            out,err = process.communicate()
-
-        log.info('Execute results - out: %s, err: %s', out, err)
-        return out, err
-
-    @set_cwd
-    def _copy_input_files_to_remote(self):
-        self._remote.put(self.remote_input_files, self._remote_id)
-
-    @set_cwd
-    def _copy_output_from_remote(self):
-        self._remote.get(os.path.join(self._remote_id, self.initial_dir))
-
-    @set_cwd
-    def _write_job_file(self):
-        self._make_job_dirs()
-        job_file = self._open(self.job_file, 'w')
-        job_file.write(self.__str__())
-        job_file.close()
-        if self._remote:
-            self._copy_input_files_to_remote()
-
     def _list_attributes(self):
         list = []
         for k,v in self.attributes.iteritems():
@@ -523,22 +415,13 @@ class Job(object):
                 list.append(k + ' = ' + str(v))
         return list
 
-    def _open(self, file_name, mode='w'):
+    def _write_job_file(self):
+        self._make_job_dirs()
+        job_file = self._open(self.job_file, 'w')
+        job_file.write(self.__str__())
+        job_file.close()
         if self._remote:
-            return self._remote.remote_file(os.path.join(self._remote_id,file_name), mode)
-        else:
-            return open(file_name, mode)
-
-    @set_cwd
-    def _make_dir(self, dir_name):
-        try:
-            log.info('making directory %s', dir_name)
-            if self._remote:
-                self._remote.makedirs(os.path.join(self._remote_id,dir_name))
-            else:
-                os.makedirs(dir_name)
-        except OSError:
-            log.warn('Unable to create directory %s. It may already exist.', dir_name)
+            self._copy_input_files_to_remote()
 
     def _make_job_dirs(self):
         self._make_dir(self.initial_dir)
@@ -573,13 +456,3 @@ class Job(object):
             return str(self.cluster_id)
 
         return self.get(match.group(1), match.group(0))
-
-    def close_remote(self):
-        """Cleans up and closes connection to remote server if defined.
-
-        """
-        if self._remote:
-            self.remove()
-            self._remote.execute('rm -rf %s' % (self._remote_id,))
-            self._remote.close()
-            del self._remote
