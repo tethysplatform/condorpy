@@ -1,7 +1,7 @@
-condorpy
-========
+API Reference
+=============
 
 .. toctree::
    :maxdepth: 4
 
-   condorpy
+   condorpy_api

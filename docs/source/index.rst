@@ -6,19 +6,19 @@
 ********
 CondorPy
 ********
-:condorpy: Python interface for high throughput computing with HTCondor
+:condorpy: Python interface for high-throughput computing with HTCondor
 :Version: 0.0.0
 :Author: Scott Christensen
 :Team: CI-Water
-:Homepage: http://ci-water.github.io/condorpy/
+:Homepage: http://tethysplatform.org/condorpy
 :License: BSD 2-Clause
 
 Contents:
 
 .. toctree::
-   :maxdepth: 1
+   :maxdepth: 3
 
-   features
+   user_manual
    htcondor
    modules
 
