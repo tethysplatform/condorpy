@@ -44,10 +44,34 @@ class HTCondorObjectBase(object):
 
     @property
     def cluster_id(self):
-        """The id assigned to the job (called a cluster in HTConodr) when the job is submitted.
-
+        """
+        The id assigned to the job (called a cluster in HTConodr) when the job is submitted.
         """
         return self._cluster_id
+
+    @property
+    def scheduler(self):
+        """
+        The remote scheduler where the job/workflow will be submitted
+        """
+        return self._remote
+
+    @scheduler.setter
+    def scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
+        """
+        Defines the remote scheduler
+
+        Args:
+            host (str): the hostname or ip address of the remote scheduler
+            username (str, optional): the username used to connect to the remote scheduler. Default is 'root'
+            password (str, optional): the password for username on the remote scheduler. Either the password or the private_key must be defined. Default is None.
+            private_key (str, optional): the path to the private ssh key used to connect to the remote scheduler. Either the password or the private_key must be defined. Default is None.
+            private_key_pass (str, optional): the passphrase for the private_key. Default is None.
+
+        Returns:
+            An SSHClient representing the remote scheduler.
+        """
+        object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
 
     @property
     def remote_input_files(self):
