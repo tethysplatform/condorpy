@@ -422,7 +422,7 @@ class Job(object):
             log.error('Error while updating status for job %s: Job not found.', job_id)
             raise HTCondorError('Job not found.')
 
-        out = out.strip('\"')
+        out = out.replace('\"', '')
         log.info('Job %s status: %s', job_id, out)
 
         if not sub_job_num:
