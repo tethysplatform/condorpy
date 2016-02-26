@@ -18,41 +18,61 @@ class Node(object):
     def __init__(self, job,
                  parents=None,
                  children=None,
-                 variables=None,
                  pre_script=None,
                  pre_script_args=None,
                  post_script=None,
                  post_script_args=None,
-                 retry=0):
+                 variables=None, # VARS JobName macroname="string" [macroname="string"... ]
+                 priority=None, # PRIORITY JobName PriorityValue
+                 category=None, # CATEGORY JobName CategoryName
+                 retry=None, # JobName NumberOfRetries [UNLESS-EXIT value]
+                 pre_skip=None, # JobName non-zero-exit-code
+                 abort_dag_on=None, # JobName AbortExitValue [RETURN DAGReturnValue]
+                 dir=None,
+                 noop=None,
+                 done=None,
+                ):
         """
+        Node constructor
 
-        :param job:
-        :param parents:
-        :param children:
-        :param pre_script:
-        :param post_script:
-        :param retry:
-        :return:
+        Args:
+            job:
+            parents:
+            children:
+            ...
         """
-        self._job = job
+        self.job = job
         self._parent_nodes = parents or set()
         self._link_parent_nodes()
         self._child_nodes = children or set()
         self._link_child_nodes()
-        self._variables = variables or dict()
-        self._pre_script = pre_script
-        self._pre_script_args = pre_script_args
-        self._post_script = post_script
-        self._post_script_args = post_script_args
-        self._retry = retry
+        self.pre_script = pre_script
+        self.pre_script_args = pre_script_args
+        self.post_script = post_script
+        self.post_script_args = post_script_args
+        self.vars = variables or dict()
+        self.priority = priority
+        self.category = category
+        self.retry = retry
+        self.pre_skip = pre_skip
+        self.abort_dag_on = abort_dag_on
+        self.dir = dir
+        self.noop = noop
+        self.done = done
 
     def __str__(self):
         """
-
-        :return:
+        Returns:
+            A string representing the node as it should be represented in the dag file.
         """
-        return 'JOB %s %s\n' % (self.job.name, self.job.job_file)
-
+        result = '%s %s %s\n' % (self.type, self.job.name, self.job.job_file)
+        if self.dir:
+            result += ' DIR %s' % (self.dir,)
+        if self.noop:
+            result += ' NOOP'
+        if self.done:
+            result += ' DONE'
+        return result
 
     def __repr__(self):
         """
@@ -60,6 +80,10 @@ class Node(object):
         :return:
         """
         return '<Node: %s parents(%s) children(%s)>' % (self.job.name, self._get_parent_names(), self._get_child_names())
+
+    @property
+    def type(self):
+        return 'JOB'
 
     @property
     def job(self):
@@ -80,6 +104,22 @@ class Node(object):
             self._job = job
         else:
             raise TypeError('%s is not of type Job' % (str(job),))
+
+    @property
+    def parent_nodes(self):
+        """
+
+        :return:
+        """
+        return self._parent_nodes
+
+    @property
+    def child_nodes(self):
+        """
+
+        :return:
+        """
+        return self._child_nodes
 
     @property
     def pre_script(self):
@@ -132,36 +172,157 @@ class Node(object):
         self._post_script_args = args
 
     @property
-    def parent_nodes(self):
+    def vars(self):
         """
 
-        :return:
         """
-        return self._parent_nodes
+        return self._vars
+
+    @vars.setter
+    def vars(self, vars):
+        """
+        vars setter
+
+        Args:
+            vars ():
+        """
+        self._vars = vars
 
     @property
-    def child_nodes(self):
+    def priority(self):
         """
 
-        :return:
         """
-        return self._child_nodes
+        return self._priority
+
+    @priority.setter
+    def priority(self, priority):
+        """
+        priority setter
+
+        Args:
+            priority ():
+        """
+        self._priority = priority
+
+    @property
+    def category(self):
+        """
+
+        """
+        return self._category
+
+    @category.setter
+    def category(self, category):
+        """
+        category setter
+
+        Args:
+            category ():
+        """
+        self._category = category
 
     @property
     def retry(self):
         """
-
-        :return:
+        A tuple indicating the number of times to retry running a node.
         """
         return self._retry
 
     @retry.setter
     def retry(self, retry):
         """
+        retry setter
 
-        :return:
+        Args:
+            retry ():
         """
         self._retry = retry
+
+    @property
+    def pre_skip(self):
+        """
+
+        """
+        return self._pre_skip
+
+    @pre_skip.setter
+    def pre_skip(self, pre_skip):
+        """
+        pre_skip setter
+
+        Args:
+            pre_skip ():
+        """
+        self._pre_skip = pre_skip
+
+    @property
+    def abort_dag_on(self):
+        """
+
+        """
+        return self._abort_dag_on
+
+    @abort_dag_on.setter
+    def abort_dag_on(self, abort_dag_on):
+        """
+        abort_dag_on setter
+
+        Args:
+            abort_dag_on ():
+        """
+        self._abort_dag_on = abort_dag_on
+
+    @property
+    def dir(self):
+        """
+
+        """
+        return self._dir
+
+    @dir.setter
+    def dir(self, dir):
+        """
+        dir setter
+
+        Args:
+            dir ():
+        """
+        self._dir = dir
+
+    @property
+    def noop(self):
+        """
+
+        """
+        return self._noop
+
+    @noop.setter
+    def noop(self, noop):
+        """
+        noop setter
+
+        Args:
+            noop ():
+        """
+        self._noop = noop
+
+    @property
+    def done(self):
+        """
+
+        """
+        return self._done
+
+    @done.setter
+    def done(self, done):
+        """
+        done setter
+
+        Args:
+            done ():
+        """
+        self._done = done
 
     def add_parent(self, parent):
         """
@@ -303,6 +464,35 @@ class Node(object):
         if self.retry:
             result += 'RETRY %s %d\n' % (self.job.name, self.retry)
         return result
+
+    def list_option(self, option):
+        result = ''
+        value = getattr(self, option)
+        if value:
+            result += '%s %s %s\n' % (option.upper(), self.job.name, str(value))
+        return result
+
+    def list_vars(self):
+        result = ''
+        if self.vars:
+            result = 'VARS %s' % (self.job.name,)
+            for key, value in self.vars.iteritems():
+                result += ' %s="%s"' % (key, value)
+            result += '\n'
+        return result
+
+    def list_priority(self):
+        return self.list_option('priority')
+
+    def list_category(self):
+        return self.list_option('category')
+
+    #TODO retry=None, # JobName NumberOfRetries [UNLESS-EXIT value]
+
+    def list_pre_skip(self):
+        return self.list_option('pre_skip')
+
+    #TODO abort_dag_on=None, # JobName AbortExitValue [RETURN DAGReturnValue]
 
     def _get_child_names(self):
         """
