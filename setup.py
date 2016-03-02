@@ -15,17 +15,17 @@ with open(os.path.join(os.path.dirname(__file__), 'README.rst')) as readme:
 # allow setup.py to be run from any path
 os.chdir(os.path.normpath(os.path.join(os.path.abspath(__file__), os.pardir)))
 
-VERSION = re.search(':Version: ([\.?\d]*)',README).group(1)
+VERSION = re.search(':Version: ([\.?\d]*)', README).group(1)
 
 setup(
-    name = "condorpy",
-    version = VERSION,
-    packages = find_packages(),
-    #scripts = ['say_hello.py'],
+    name="condorpy",
+    version=VERSION,
+    packages=find_packages(),
+    #scripts=['say_hello.py'],
 
     # Project uses reStructuredText, so ensure that the docutils get
     # installed or upgraded on the target machine
-    install_requires = ['tethyscluster'],
+    install_requires=['tethyscluster'],
     
 
 #    package_data = {
@@ -37,13 +37,13 @@ setup(
 
     
     # metadata for upload to PyPI
-    author = "Scott Christensen",
-    author_email = "sdc50@byu.net",
-    description = "A Python wrapper for HTCondor's cli",
+    author="Scott Christensen",
+    author_email="sdc50@byu.net",
+    description="A Python wrapper for HTCondor's cli",
     long_description=README,
-    license = "BSD 2-Clause License",
-    keywords = "htcondor distributed-computing job-scheduling",
-    url = "http://ci-water.github.io/condorpy/",
+    license="BSD 2-Clause License",
+    keywords="htcondor distributed-computing job-scheduling",
+    url="http://tethysplatform.org/condorpy/",
 
     # could also include download_url, classifiers, etc.
 )
