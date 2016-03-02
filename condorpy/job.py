@@ -57,8 +57,6 @@ class Job(HTCondorObjectBase):
     def __init__(self,
                  name,
                  attributes=None,
-                 executable=None,
-                 arguments=None,
                  num_jobs=1,
                  host=None,
                  username=None,
@@ -78,8 +76,6 @@ class Job(HTCondorObjectBase):
         super(Job, self).__init__(host, username, password, private_key, private_key_pass, remote_input_files, working_directory)
 
         self.job_name = name
-        self.executable = executable
-        self.arguments = arguments
         if kwargs:
             for attr, value in kwargs.iteritems():
                 self.set(attr, value)
