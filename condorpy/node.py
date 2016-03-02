@@ -10,6 +10,7 @@ from job import Job
 from logger import log
 from exceptions import CircularDependency
 
+
 class Node(object):
     """
 
@@ -22,16 +23,16 @@ class Node(object):
                  pre_script_args=None,
                  post_script=None,
                  post_script_args=None,
-                 variables=None, # VARS JobName macroname="string" [macroname="string"... ]
-                 priority=None, # PRIORITY JobName PriorityValue
-                 category=None, # CATEGORY JobName CategoryName
-                 retry=None, # JobName NumberOfRetries [UNLESS-EXIT value]
-                 pre_skip=None, # JobName non-zero-exit-code
+                 variables=None,    # VARS JobName macroname="string" [macroname="string"... ]
+                 priority=None,     # PRIORITY JobName PriorityValue
+                 category=None,     # CATEGORY JobName CategoryName
+                 retry=None,        # JobName NumberOfRetries [UNLESS-EXIT value]
+                 pre_skip=None,     # JobName non-zero-exit-code
                  abort_dag_on=None, # JobName AbortExitValue [RETURN DAGReturnValue]
                  dir=None,
                  noop=None,
                  done=None,
-                ):
+                 ):
         """
         Node constructor
 
