@@ -38,6 +38,8 @@ class HTCondorObjectBase(object):
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_input_files', remote_input_files or None)
         object.__setattr__(self, '_cwd', working_directory)
+        object.__setattr__(self, '_remote', None)
+        object.__setattr__(self, '_remote_id', None)
         if host:
             object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
             object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
@@ -94,7 +96,7 @@ class HTCondorObjectBase(object):
             the submit description file should be relative to the initial directory on the remote server.
 
         """
-        self._remote_input_files = list(files)
+        self._remote_input_files = list(files) if files else None
 
     def set_cwd(fn):
         """
@@ -147,7 +149,7 @@ class HTCondorObjectBase(object):
             del self._remote
 
     @set_cwd
-    def _execute(self, args):
+    def _execute(self, args, shell=False):
         out = None
         err = None
         if self._remote:
@@ -162,8 +164,8 @@ class HTCondorObjectBase(object):
                 err = e.msg
         else:
             log.info('Executing local command %s', ' '.join(args))
-            process = subprocess.Popen(args, stdout = subprocess.PIPE, stderr=subprocess.PIPE)
-            out,err = process.communicate()
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
+            out, err = process.communicate()
 
         log.info('Execute results - out: %s, err: %s', out, err)
         return out, err
@@ -179,7 +181,7 @@ class HTCondorObjectBase(object):
     @set_cwd
     def _open(self, file_name, mode='w'):
         if self._remote:
-            return self._remote.remote_file(os.path.join(self._remote_id,file_name), mode)
+            return self._remote.remote_file(os.path.join(self._remote_id, file_name), mode)
         else:
             return open(file_name, mode)
 
@@ -188,7 +190,7 @@ class HTCondorObjectBase(object):
         try:
             log.info('making directory %s', dir_name)
             if self._remote:
-                self._remote.makedirs(os.path.join(self._remote_id,dir_name))
+                self._remote.makedirs(os.path.join(self._remote_id, dir_name))
             else:
                 os.makedirs(dir_name)
         except OSError:

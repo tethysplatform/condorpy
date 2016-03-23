@@ -15,6 +15,7 @@ from static import CONDOR_JOB_STATUSES
 from logger import log
 from exceptions import NoExecutable, RemoteError, HTCondorError
 
+
 class Job(HTCondorObjectBase):
     """Represents a HTCondor job and the submit description file.
 
@@ -53,7 +54,6 @@ class Job(HTCondorObjectBase):
 
     """
 
-
     def __init__(self,
                  name,
                  attributes=None,
@@ -70,15 +70,16 @@ class Job(HTCondorObjectBase):
         object.__setattr__(self, '_name', name)
         if attributes:
             assert isinstance(attributes, dict)
-        object.__setattr__(self, '_attributes', attributes or OrderedDict())
+        object.__setattr__(self, '_attributes', OrderedDict())
         object.__setattr__(self, '_num_jobs', int(num_jobs))
         object.__setattr__(self, '_job_file', '')
         super(Job, self).__init__(host, username, password, private_key, private_key_pass, remote_input_files, working_directory)
 
-        self.job_name = name
-        if kwargs:
-            for attr, value in kwargs.iteritems():
-                self.set(attr, value)
+        attributes = attributes or OrderedDict()
+        attributes['job_name'] = name
+        attributes.update(kwargs)
+        for attr, value in attributes.iteritems():
+            self.set(attr, value)
 
     def __str__(self):
         return '\n'.join(self._list_attributes()) + '\n\nqueue %d\n' % (self.num_jobs)
@@ -117,20 +118,18 @@ class Job(HTCondorObjectBase):
             key (str): The name of the attribute to set.
             value (str): The value to assign to 'key'.
         """
-        if  key in self.__dict__ or '_' + key in self.__dict__:
+        if key in self.__dict__ or '_' + key in self.__dict__:
             object.__setattr__(self, key, value)
         else:
             self.set(key, value)
 
     @property
     def name(self):
-
-        self._name = self.get('job_name')
         return self._name
 
     @name.setter
-    def name(self,name):
-        self.set('job_name', name)
+    def name(self, name):
+        self._name = name
 
     @property
     def attributes(self):
@@ -152,7 +151,7 @@ class Job(HTCondorObjectBase):
         status_dict = self.statuses
         #determin job status
         status = "Various"
-        for key,val in status_dict.iteritems():
+        for key, val in status_dict.iteritems():
             if val == self.num_jobs:
                 status = key
         return status
@@ -215,7 +214,6 @@ class Job(HTCondorObjectBase):
                 Defaults to an empty list.
 
         """
-
         if not self.executable:
             log.error('Job %s was submitted with no executable', self.name)
             raise NoExecutable('You cannot submit a job without an executable')
@@ -369,16 +367,9 @@ class Job(HTCondorObjectBase):
         """
         job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
         format = ['-format', '"%d"', 'JobStatus']
-        args = ['condor_q', job_id]
-        args.extend(format)
-        out, err = self._execute(args)
-        if err:
-            log.error('Error while updating status for job %s: %s', job_id, err)
-            raise HTCondorError(err)
-        if not out:
-            args = ['condor_history', job_id]
-            args.extend(format)
-            out, err = self._execute(args)
+        cmd = 'condor_q {0} {1} && condor_history {0} {1}'.format(job_id, ' '.join(format))
+        args = [cmd]
+        out, err = self._execute(args, shell=True)
         if err:
             log.error('Error while updating status for job %s: %s', job_id, err)
             raise HTCondorError(err)
@@ -390,7 +381,12 @@ class Job(HTCondorObjectBase):
         log.info('Job %s status: %s', job_id, out)
 
         if not sub_job_num:
-            assert len(out) == self.num_jobs
+            if len(out) >= self.num_jobs:
+                out = out[:self.num_jobs]
+            else:
+                msg = 'There are {0} sub-jobs, but {1} status(es).'.format(self.num_jobs, len(out))
+                log.error(msg)
+                raise HTCondorError(msg)
 
         #initialize status dictionary
         status_dict = dict()
@@ -405,11 +401,11 @@ class Job(HTCondorObjectBase):
         return status_dict
 
     def _list_attributes(self):
-        list = []
-        for k,v in self.attributes.iteritems():
+        attribute_list = []
+        for k, v in self.attributes.iteritems():
             if v:
-                list.append(k + ' = ' + str(v))
-        return list
+                attribute_list.append(k + ' = ' + str(v))
+        return attribute_list
 
     def _write_job_file(self):
         self._make_job_dirs()

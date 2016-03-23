@@ -5,9 +5,9 @@
 # condorpy is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have been distributed with this file.
-
-from job import Job
 from logger import log
+
+from htcondor_object_base import HTCondorObjectBase
 from exceptions import CircularDependency
 
 
@@ -101,10 +101,10 @@ class Node(object):
         :param job:
         :return:
         """
-        if isinstance(job, Job):
+        if isinstance(job, HTCondorObjectBase):
             self._job = job
         else:
-            raise TypeError('%s is not of type Job' % (str(job),))
+            raise TypeError('%s is not of type Job or Workflow' % (str(job),))
 
     @property
     def parent_nodes(self):
@@ -441,6 +441,18 @@ class Node(object):
         for child in self.child_nodes:
             if self not in child.parent_nodes:
                 child.add_parent(self)
+
+    @classmethod
+    def all_list_functions(cls):
+        return [cls.__str__.__name__,
+                cls.list_vars.__name__,
+                cls.list_relations.__name__,
+                cls.list_scripts.__name__,
+                cls.list_pre_skip.__name__,
+                cls.list_category.__name__,
+                cls.list_priority.__name__,
+                cls.list_options.__name__,
+                ]
 
     def list_relations(self):
         """
