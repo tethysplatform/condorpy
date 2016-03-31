@@ -27,8 +27,10 @@ class Node(object):
                  priority=None,     # PRIORITY JobName PriorityValue
                  category=None,     # CATEGORY JobName CategoryName
                  retry=None,        # JobName NumberOfRetries [UNLESS-EXIT value]
+                 retry_unless_exit_value=None,
                  pre_skip=None,     # JobName non-zero-exit-code
                  abort_dag_on=None, # JobName AbortExitValue [RETURN DAGReturnValue]
+                 abort_dag_on_return_value=None,
                  dir=None,
                  noop=None,
                  done=None,
@@ -55,8 +57,10 @@ class Node(object):
         self.priority = priority
         self.category = category
         self.retry = retry
+        self.retry_unless_exit_value = retry_unless_exit_value
         self.pre_skip = pre_skip
         self.abort_dag_on = abort_dag_on
+        self.abort_dag_on_return_value = abort_dag_on_return_value
         self.dir = dir
         self.noop = noop
         self.done = done
@@ -122,208 +126,242 @@ class Node(object):
         """
         return self._child_nodes
 
-    @property
-    def pre_script(self):
-        """
-
-        :return:
-        """
-        return self._pre_script
-
-    @pre_script.setter
-    def pre_script(self, script):
-        """
-
-        :param script:
-        :return:
-        """
-        self._pre_script = script
-
-    @property
-    def pre_script_args(self):
-        return self._pre_script_args
-
-    @pre_script_args.setter
-    def pre_script_args(self, args):
-        self._pre_script_args = args
-
-    @property
-    def post_script(self):
-        """
-
-        :return:
-        """
-        return self._post_script
-
-    @post_script.setter
-    def post_script(self, script):
-        """
-
-        :param script:
-        :return:
-        """
-        self._post_script = script
-
-    @property
-    def post_script_args(self):
-        return self._post_script_args
-
-    @post_script_args.setter
-    def post_script_args(self, args):
-        self._post_script_args = args
-
-    @property
-    def vars(self):
-        """
-
-        """
-        return self._vars
-
-    @vars.setter
-    def vars(self, vars):
-        """
-        vars setter
-
-        Args:
-            vars ():
-        """
-        self._vars = vars
-
-    @property
-    def priority(self):
-        """
-
-        """
-        return self._priority
-
-    @priority.setter
-    def priority(self, priority):
-        """
-        priority setter
-
-        Args:
-            priority ():
-        """
-        self._priority = priority
-
-    @property
-    def category(self):
-        """
-
-        """
-        return self._category
-
-    @category.setter
-    def category(self, category):
-        """
-        category setter
-
-        Args:
-            category ():
-        """
-        self._category = category
-
-    @property
-    def retry(self):
-        """
-        A tuple indicating the number of times to retry running a node.
-        """
-        return self._retry
-
-    @retry.setter
-    def retry(self, retry):
-        """
-        retry setter
-
-        Args:
-            retry ():
-        """
-        self._retry = retry
-
-    @property
-    def pre_skip(self):
-        """
-
-        """
-        return self._pre_skip
-
-    @pre_skip.setter
-    def pre_skip(self, pre_skip):
-        """
-        pre_skip setter
-
-        Args:
-            pre_skip ():
-        """
-        self._pre_skip = pre_skip
-
-    @property
-    def abort_dag_on(self):
-        """
-
-        """
-        return self._abort_dag_on
-
-    @abort_dag_on.setter
-    def abort_dag_on(self, abort_dag_on):
-        """
-        abort_dag_on setter
-
-        Args:
-            abort_dag_on ():
-        """
-        self._abort_dag_on = abort_dag_on
-
-    @property
-    def dir(self):
-        """
-
-        """
-        return self._dir
-
-    @dir.setter
-    def dir(self, dir):
-        """
-        dir setter
-
-        Args:
-            dir ():
-        """
-        self._dir = dir
-
-    @property
-    def noop(self):
-        """
-
-        """
-        return self._noop
-
-    @noop.setter
-    def noop(self, noop):
-        """
-        noop setter
-
-        Args:
-            noop ():
-        """
-        self._noop = noop
-
-    @property
-    def done(self):
-        """
-
-        """
-        return self._done
-
-    @done.setter
-    def done(self, done):
-        """
-        done setter
-
-        Args:
-            done ():
-        """
-        self._done = done
+    # @property
+    # def pre_script(self):
+    #     """
+    #
+    #     :return:
+    #     """
+    #     return self.pre_script
+    #
+    # @pre_script.setter
+    # def pre_script(self, script):
+    #     """
+    #
+    #     :param script:
+    #     :return:
+    #     """
+    #     self.pre_script = script
+    #
+    # @property
+    # def pre_script_args(self):
+    #     return self.pre_script_args
+    #
+    # @pre_script_args.setter
+    # def pre_script_args(self, args):
+    #     self.pre_script_args = args
+    #
+    # @property
+    # def post_script(self):
+    #     """
+    #
+    #     :return:
+    #     """
+    #     return self.post_script
+    #
+    # @post_script.setter
+    # def post_script(self, script):
+    #     """
+    #
+    #     :param script:
+    #     :return:
+    #     """
+    #     self.post_script = script
+    #
+    # @property
+    # def post_script_args(self):
+    #     return self.post_script_args
+    #
+    # @post_script_args.setter
+    # def post_script_args(self, args):
+    #     self.post_script_args = args
+    #
+    # @property
+    # def vars(self):
+    #     """
+    #
+    #     """
+    #     return self.vars
+    #
+    # @vars.setter
+    # def vars(self, vars):
+    #     """
+    #     vars setter
+    #
+    #     Args:
+    #         vars ():
+    #     """
+    #     self.vars = vars
+    #
+    # @property
+    # def priority(self):
+    #     """
+    #
+    #     """
+    #     return self.priority
+    #
+    # @priority.setter
+    # def priority(self, priority):
+    #     """
+    #     priority setter
+    #
+    #     Args:
+    #         priority ():
+    #     """
+    #     self.priority = priority
+    #
+    # @property
+    # def category(self):
+    #     """
+    #
+    #     """
+    #     return self.category
+    #
+    # @category.setter
+    # def category(self, category):
+    #     """
+    #     category setter
+    #
+    #     Args:
+    #         category ():
+    #     """
+    #     self.category = category
+    #
+    # @property
+    # def retry(self):
+    #     """
+    #     An integer indicating the number of times to retry running a node.
+    #     """
+    #     return self.retry
+    #
+    # @retry.setter
+    # def retry(self, retry):
+    #     """
+    #     retry setter
+    #
+    #     Args:
+    #         retry ():
+    #     """
+    #     self.retry = retry
+    #
+    # @property
+    # def retry_unless_exit_value(self):
+    #     """
+    #     An integer indicating the exit value for which not to retry a job
+    #     """
+    #     return self.retry_unless_exit_value
+    #
+    # @retry.setter
+    # def retry_unless_exit_value(self, retry_unless_exit_value):
+    #     """
+    #     retry_unless_exit_value setter
+    #
+    #     Args:
+    #         retry_unless_exit_value ():
+    #     """
+    #     self.retry_unless_exit_value = retry_unless_exit_value
+    #
+    # @property
+    # def pre_skip(self):
+    #     """
+    #
+    #     """
+    #     return self.pre_skip
+    #
+    # @pre_skip.setter
+    # def pre_skip(self, pre_skip):
+    #     """
+    #     pre_skip setter
+    #
+    #     Args:
+    #         pre_skip ():
+    #     """
+    #     self.pre_skip = pre_skip
+    #
+    # @property
+    # def abort_dag_on(self):
+    #     """
+    #
+    #     """
+    #     return self.abort_dag_on
+    #
+    # @abort_dag_on.setter
+    # def abort_dag_on(self, abort_dag_on):
+    #     """
+    #     abort_dag_on setter
+    #
+    #     Args:
+    #         abort_dag_on ():
+    #     """
+    #     self.abort_dag_on = abort_dag_on
+    #
+    # @property
+    # def abort_dag_on_return_value(self):
+    #     """
+    #
+    #     """
+    #     return self.abort_dag_on
+    #
+    # @abort_dag_on_return_value.setter
+    # def abort_dag_on_return_value(self, abort_dag_on_return_value):
+    #     """
+    #     abort_dag_on_return_value setter
+    #
+    #     Args:
+    #         abort_dag_on_return_value ():
+    #     """
+    #     self.abort_dag_on_return_value = abort_dag_on_return_value
+    #
+    # @property
+    # def dir(self):
+    #     """
+    #
+    #     """
+    #     return self._dir
+    #
+    # @dir.setter
+    # def dir(self, dir):
+    #     """
+    #     dir setter
+    #
+    #     Args:
+    #         dir ():
+    #     """
+    #     self.dir = dir
+    #
+    # @property
+    # def noop(self):
+    #     """
+    #
+    #     """
+    #     return self.noop
+    #
+    # @noop.setter
+    # def noop(self, noop):
+    #     """
+    #     noop setter
+    #
+    #     Args:
+    #         noop ():
+    #     """
+    #     self.noop = noop
+    #
+    # @property
+    # def done(self):
+    #     """
+    #
+    #     """
+    #     return self.done
+    #
+    # @done.setter
+    # def done(self, done):
+    #     """
+    #     done setter
+    #
+    #     Args:
+    #         done ():
+    #     """
+    #     self.done = done
 
     def add_parent(self, parent):
         """
