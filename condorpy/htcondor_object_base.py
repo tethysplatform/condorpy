@@ -17,6 +17,7 @@ from exceptions import HTCondorError
 from tethyscluster.sshutils import SSHClient
 from tethyscluster.exception import RemoteCommandFailed, SSHError
 
+
 class HTCondorObjectBase(object):
     """
 
@@ -108,10 +109,12 @@ class HTCondorObjectBase(object):
             log.info('Saved cwd: %s', cwd)
             os.chdir(self._cwd)
             log.info('Changing working directory to: %s', self._cwd)
-            result = fn(self, *args, **kwargs)
-            os.chdir(cwd)
-            log.info('Restored working directory to: %s', os.getcwd())
-            return result
+            try:
+                return fn(self, *args, **kwargs)
+            finally:
+                os.chdir(cwd)
+                log.info('Restored working directory to: %s', cwd)
+
         return wrapped
 
     def submit(self, args):
