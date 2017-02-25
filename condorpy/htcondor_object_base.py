@@ -14,8 +14,9 @@ import subprocess
 from logger import log
 from exceptions import HTCondorError
 
-from tethyscluster.sshutils import SSHClient
-from tethyscluster.exception import RemoteCommandFailed, SSHError
+from remote_utils import RemoteClient
+from paramiko import SSHException
+
 
 
 class HTCondorObjectBase(object):
@@ -42,7 +43,7 @@ class HTCondorObjectBase(object):
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_id', None)
         if host:
-            object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
+            object.__setattr__(self, '_remote', RemoteClient(host, username, password, private_key, private_key_pass))
             object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
 
     @property
@@ -72,9 +73,9 @@ class HTCondorObjectBase(object):
             private_key_pass (str, optional): the passphrase for the private_key. Default is None.
 
         Returns:
-            An SSHClient representing the remote scheduler.
+            An RemoteClient representing the remote scheduler.
         """
-        object.__setattr__(self, '_remote', SSHClient(host, username, password, private_key, private_key_pass))
+        object.__setattr__(self, '_remote', RemoteClient(host, username, password, private_key, private_key_pass))
 
     @property
     def remote_input_files(self):
@@ -161,9 +162,9 @@ class HTCondorObjectBase(object):
             try:
                 cmd = 'cd %s && %s' % (self._remote_id, cmd)
                 out = '\n'.join(self._remote.execute(cmd))
-            except RemoteCommandFailed as e:
-                err = e.output
-            except SSHError as e:
+            except RuntimeError as e:
+                err = e.msg
+            except SSHException as e:
                 err = e.msg
         else:
             log.info('Executing local command %s', ' '.join(args))
