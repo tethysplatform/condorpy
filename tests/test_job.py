@@ -19,6 +19,7 @@ class TestJob(unittest.TestCase):
     expected = None
     actual = None
     msg = None
+    base_dir = os.path.join(os.path.dirname(__file__))
 
     @property
     def output(self):
@@ -296,6 +297,7 @@ class TestJob(unittest.TestCase):
         pass
 
     def test_remote(self):
+        working_dir = os.path.join(self.base_dir, 'test_files', 'working_dir')
         self.job = Job('remote_test',
                        Templates.vanilla_transfer_files,
                        host='localhost',
@@ -303,7 +305,7 @@ class TestJob(unittest.TestCase):
                        private_key='~/.ssh/id_rsa',
                        remote_input_files=['../copy_test.py', 'input.txt'],
                        transfer_input_files='../input.txt',
-                       working_directory='test_files/working_dir')
+                       working_directory=working_dir)
 
         remote_base_path = os.path.expanduser('~/' + self.job._remote_id)
         if os.path.exists(remote_base_path):
@@ -312,7 +314,7 @@ class TestJob(unittest.TestCase):
         self.assertTrue(os.path.exists(remote_base_path))
 
         self.job.sync_remote_output()
-        local_output = 'test_files/working_dir/{0}'.format(self.job.name)
+        local_output = os.path.join(working_dir, self.job.name)
         self.assertTrue(os.path.exists(local_output))
         shutil.rmtree(remote_base_path)
         shutil.rmtree(local_output)
