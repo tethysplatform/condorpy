@@ -10,9 +10,7 @@ install:
   - pip install coverage coveralls
   - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
   - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
-  - cat ~/.ssh/authorized_keys
-  - ssh -o StrictHostKeyChecking=no localhost 'echo test'
-  - cat ~/.ssh/known_hosts
+  - ssh -o StrictHostKeyChecking=no localhost 'echo this adds localhost to known_hosts'
 # command to run tests
 script:
   - python -m unittest discover
