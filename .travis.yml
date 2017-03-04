@@ -8,6 +8,7 @@ python:
 install:
   - python setup.py install
   - pip install coverage coveralls
+  - ssh-keygen -t rsa -N "" -f ~/.ssh/rsa_id
 # command to run tests
 script:
   - python -m unittest
