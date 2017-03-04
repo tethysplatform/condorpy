@@ -9,7 +9,7 @@ install:
   - python setup.py install
   - pip install coverage coveralls
   - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-  - echo ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+  - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
   - ssh localhost 'echo test'
 # command to run tests
 script:
