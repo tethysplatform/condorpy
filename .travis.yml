@@ -12,6 +12,7 @@ install:
   - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
   - cat ~/.ssh/authorized_keys
   - ssh -o StrictHostKeyChecking=no localhost 'echo test'
+  - cat ~/.ssh/known_hosts
 # command to run tests
 script:
   - python -m unittest discover
