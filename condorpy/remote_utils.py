@@ -14,7 +14,9 @@ class RemoteClient(object):
         self.host = host
         self.username = username
         self.password = password
-        self.private_key = paramiko.RSAKey.from_private_key_file(filename=private_key, password=private_key_pass)
+        if private_key:
+            private_key = os.path.expanduser(private_key)
+            self.private_key = paramiko.RSAKey.from_private_key_file(filename=private_key, password=private_key_pass)
         self.port = port
         self._transport = None
         self._scp = None
@@ -70,14 +72,14 @@ class RemoteClient(object):
             if dirname:
                 self.makedirs(dirname)
             if basename:
-                self.sftp.mkdir(basename)
+                self.sftp.mkdir(remote_path)
 
     def put(self, local_paths, remote_path):
         self.scp.put(files=local_paths,
                      remote_path=remote_path,
                      recursive=True)
 
-    def get(self, remote_paths, local_path):
+    def get(self, remote_paths, local_path='.'):
         self.scp.get(remote_paths,
                      local_path,
                      recursive=True)

@@ -32,8 +32,8 @@ class Templates(object):
     def save(self, file_name=None):
         if not file_name:
             file_name = os.path.join(os.path.dirname(__file__), 'condorpy-saved-templates')
-        with open(file_name, 'w') as file:
-            pickle.dump(self.__dict__, file)
+        with open(file_name, 'wb') as file:
+            pickle.dump(self.__dict__, file, protocol=0)
 
     def load(self, file_name=None):
         if not file_name:
@@ -41,9 +41,9 @@ class Templates(object):
         if not os.path.isfile(file_name):
             return
             #TODO: raise an error? log warning?
-        with open(file_name, 'r') as file:
-            dict = pickle.load(file)
-        self.__dict__.update(dict)
+        with open(file_name, 'rb') as file:
+            pdict = pickle.load(file)
+        self.__dict__.update(pdict)
 
     def reset(self):
         self.__dict__ = dict()

@@ -11,9 +11,9 @@ from condorpy.static import CONDOR_JOB_STATUSES
 
 from condorpy.exceptions import HTCondorError
 
-from htcondor_object_base import HTCondorObjectBase
-from node import Node
-from logger import log
+from .htcondor_object_base import HTCondorObjectBase
+from .node import Node
+from .logger import log
 
 
 class Workflow(HTCondorObjectBase):

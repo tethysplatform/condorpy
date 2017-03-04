@@ -11,10 +11,10 @@ import re
 import uuid
 import subprocess
 
-from logger import log
-from exceptions import HTCondorError
+from .logger import log
+from .exceptions import HTCondorError
 
-from remote_utils import RemoteClient
+from .remote_utils import RemoteClient
 from paramiko import SSHException
 
 

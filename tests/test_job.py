@@ -7,6 +7,7 @@ import unittest
 from condorpy import Job
 from condorpy import Templates
 import os
+import shutil
 from collections import OrderedDict
 
 
@@ -14,6 +15,18 @@ def load_tests(loader, tests, pattern):
     return unittest.TestLoader().loadTestsFromTestCase(TestJob)
 
 class TestJob(unittest.TestCase):
+
+    expected = None
+    actual = None
+    msg = None
+
+    @property
+    def output(self):
+        return '%s\nExpected: %s\nActual:   %s\n' % (self.msg, self.expected, self.actual)
+
+    @property
+    def assert_args(self):
+        return (self.expected, self.actual, self.output)
 
 
     def setUp(self):
@@ -26,33 +39,33 @@ class TestJob(unittest.TestCase):
     def test__init__(self):
         attributes = OrderedDict()
         attributes['job_name'] = self.job_name
-        attributes['executable'] = None
-        attributes['arguments'] = None
 
-        expected = {'_name': self.job_name,
+        self.expected = {'_name': self.job_name,
                     '_attributes': attributes,
                     '_num_jobs': 1,
                     '_cluster_id': 0,
                     '_job_file': '',
                     '_remote': None,
-                    '_remote_input_files': None}
-        actual = self.job.__dict__
-        msg = 'testing initialization with default values'
-        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual: %s\n' % (msg, expected, actual))
+                    '_remote_id': None,
+                    '_remote_input_files': None,
+                    '_cwd': '.'}
+        self.actual = self.job.__dict__
+        self.msg = 'testing initialization with default values'
+        self.assertDictEqual(*self.assert_args)
 
         exe = 'exe'
-        args = '-args'
+        args = 'args'
         num_jobs = '5'
-        self.job = Job(self.job_name, OrderedDict(), exe, args, num_jobs)
-        attributes['executable'] = exe
-        attributes['arguments'] = args
+        self.job = Job(self.job_name, OrderedDict(), num_jobs, executable=exe, arguments=args)
+        kwargs = dict({'executable': exe, 'arguments': args})
+        attributes.update(kwargs)
 
-        expected.update({'_name': self.job_name,
+        self.expected.update({'_name': self.job_name,
                     '_attributes': attributes,
                     '_num_jobs': int(num_jobs)})
-        actual = self.job.__dict__
-        msg = 'testing initialization with all values supplied'
-        self.assertDictEqual(expected, actual, '%s\nExpected: %s\nActual:   %s\n' % (msg, expected, actual))
+        self.actual = self.job.__dict__
+        self.msg = 'testing initialization with all values supplied'
+        self.assertDictEqual(*self.assert_args)
 
         num_jobs = 'five'
         self.assertRaises(ValueError, Job, self.job_name, num_jobs=num_jobs)
@@ -184,7 +197,7 @@ class TestJob(unittest.TestCase):
         self.assertRaises(expected, actual)
 
     def test_wait(self):
-        self.job.wait()
+        pass
 
     def test_get(self):
         non_existent_attr = 'not-there'
@@ -282,26 +295,28 @@ class TestJob(unittest.TestCase):
     def test_resolve_attribute_match(self):
         pass
 
+    def test_remote(self):
+        self.job = Job('remote_test',
+                       Templates.vanilla_transfer_files,
+                       host='localhost',
+                       username=os.environ['USER'],
+                       private_key='~/.ssh/id_rsa',
+                       remote_input_files=['../copy_test.py', 'input.txt'],
+                       transfer_input_files='../input.txt',
+                       working_directory='test_files/working_dir')
+
+        remote_base_path = os.path.expanduser('~/' + self.job._remote_id)
+        if os.path.exists(remote_base_path):
+            raise
+        self.job._write_job_file()
+        self.assertTrue(os.path.exists(remote_base_path))
+
+        self.job.sync_remote_output()
+        local_output = 'test_files/working_dir/{0}'.format(self.job.name)
+        self.assertTrue(os.path.exists(local_output))
+        shutil.rmtree(remote_base_path)
+        shutil.rmtree(local_output)
+
 if __name__ == "__main__":
     #import sys;sys.argv = ['', 'Test.testName']
     unittest.main()
-
-#the following code is for testing remote submission
-'''
-from condorpy import Job, Templates
-j = Job('remote_test',
-        Templates.vanilla_transfer_files,
-        'copy_test.py',
-        'input.txt',
-        host = '54.152.187.199',
-        username = 'tethysadmin',
-        private_key = '~/.tethyscluster/starcluster.pem',
-        remote_input_files = ['copy_test.py', 'input.txt'],
-        transfer_input_files = '../input.txt',
-        working_directory='sandbox')
-j.submit()
-print j.status
-j.wait()
-j.sync_remote_output()
-j.close_remote()
-'''

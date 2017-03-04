@@ -5,10 +5,10 @@
 # condorpy is free software: you can redistribute it and/or modify it under
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have been distributed with this file.
-from logger import log
+from .logger import log
 
-from htcondor_object_base import HTCondorObjectBase
-from exceptions import CircularDependency
+from .htcondor_object_base import HTCondorObjectBase
+from .exceptions import CircularDependency
 
 
 class Node(object):

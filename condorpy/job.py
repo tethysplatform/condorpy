@@ -10,10 +10,10 @@ import os
 import re
 from collections import OrderedDict
 
-from htcondor_object_base import HTCondorObjectBase
-from static import CONDOR_JOB_STATUSES
-from logger import log
-from exceptions import NoExecutable, RemoteError, HTCondorError
+from .htcondor_object_base import HTCondorObjectBase
+from .static import CONDOR_JOB_STATUSES
+from .logger import log
+from .exceptions import NoExecutable, RemoteError, HTCondorError
 
 
 class Job(HTCondorObjectBase):
@@ -78,7 +78,7 @@ class Job(HTCondorObjectBase):
         attributes = attributes or OrderedDict()
         attributes['job_name'] = name
         attributes.update(kwargs)
-        for attr, value in attributes.iteritems():
+        for attr, value in attributes.items():
             self.set(attr, value)
 
     def __str__(self):
@@ -402,7 +402,7 @@ class Job(HTCondorObjectBase):
 
     def _list_attributes(self):
         attribute_list = []
-        for k, v in self.attributes.iteritems():
+        for k, v in self.attributes.items():
             if v:
                 attribute_list.append(k + ' = ' + str(v))
         return attribute_list
