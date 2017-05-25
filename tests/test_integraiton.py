@@ -50,7 +50,7 @@ class TestIntegration(unittest.TestCase):
         local_output = os.path.join(working_dir, self.job.name)
         self.assertTrue(os.path.exists(local_output))
         output = os.path.join(local_output, 'output.txt')
-        print(output)
+
         self.assertTrue(os.path.exists(output))
         shutil.rmtree(remote_base_path)
         shutil.rmtree(local_output)

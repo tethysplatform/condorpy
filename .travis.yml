@@ -6,11 +6,41 @@ python:
   - "3.6"
 # command to install dependencies
 install:
+  - sudo apt-get update
+  # We do this conditionally because it saves us some downloading if the
+  # version is the same.
+  - if [[ "$TRAVIS_PYTHON_VERSION" == "2.7" ]]; then
+      wget https://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O miniconda.sh;
+    else
+      wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
+    fi
+  - bash miniconda.sh -b -p $HOME/miniconda
+  - export PATH="$HOME/miniconda/bin:$PATH"
+  - hash -r
+  - conda config --set always_yes yes --set changeps1 no
+  - conda config --add channels conda-forge
+  - conda update -q conda
+  # Useful for debugging any issues with conda
+  - conda info -a
+
+  # Replace dep1 dep2 ... with your dependencies
+  - conda create -q -n test-environment python=$TRAVIS_PYTHON_VERSION scp paramiko
+  - source activate test-environment
+
   - python setup.py install
   - pip install coverage coveralls
   - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
   - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
   - ssh -o StrictHostKeyChecking=no localhost 'echo this adds localhost to known_hosts'
+  - wget https://github.com/tethysplatform/condorpy/releases/download/v0.1.9/condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
+  - tar -xvzf condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
+  - cd condor-8.6.1-x86_64_Ubuntu14-stripped
+  - ./condor-install --make-personal-condor
+  - sudo mkdir /etc/condor
+  - sudo ln -s $PWD/condor_config /etc/condor/
+  - sudo ln -s $PWD/bin/* /usr/local/bin/
+  - sudo ln -s $PWD/sbin/* /usr/local/sbin/
+  - condor_master
 # command to run tests
 script:
   - python -m unittest discover

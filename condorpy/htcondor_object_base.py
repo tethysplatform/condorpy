@@ -125,7 +125,7 @@ class HTCondorObjectBase(object):
         """
         out, err = self._execute(args)
         if err:
-            if re.match('WARNING|Renaming', err.decode('utf-8')):
+            if re.match('WARNING|Renaming', err):
                 log.warning(err)
             else:
                 raise HTCondorError(err)
