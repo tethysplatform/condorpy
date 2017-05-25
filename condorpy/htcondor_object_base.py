@@ -163,9 +163,9 @@ class HTCondorObjectBase(object):
                 cmd = 'cd %s && %s' % (self._remote_id, cmd)
                 out = '\n'.join(self._remote.execute(cmd))
             except RuntimeError as e:
-                err = e.msg
+                err = str(e)
             except SSHException as e:
-                err = e.msg
+                err = str(e)
         else:
             log.info('Executing local command %s', ' '.join(args))
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
