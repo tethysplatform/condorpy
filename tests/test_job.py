@@ -58,8 +58,8 @@ class TestJob(unittest.TestCase):
         args = 'args'
         num_jobs = '5'
         self.job = Job(self.job_name, OrderedDict(), num_jobs, executable=exe, arguments=args)
-        kwargs = dict({'executable': exe, 'arguments': args})
-        attributes.update(kwargs)
+        attributes['arguments'] = args
+        attributes['executable'] = exe
 
         self.expected.update({'_name': self.job_name,
                     '_attributes': attributes,
