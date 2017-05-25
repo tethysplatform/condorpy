@@ -10,7 +10,6 @@ python:
 install:
   # install htcondor
   - sudo apt-get update
-  - strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
   - wget https://github.com/tethysplatform/condorpy/releases/download/v0.1.9/condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - tar -xvzf condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - cd condor-8.6.1-x86_64_Ubuntu14-stripped

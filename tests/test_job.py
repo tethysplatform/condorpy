@@ -38,7 +38,7 @@ class TestJob(unittest.TestCase):
         pass
 
     def test__init__(self):
-        attributes = OrderedDict()
+        attributes = dict()
         attributes['job_name'] = self.job_name
 
         self.expected = {'_name': self.job_name,
@@ -58,13 +58,13 @@ class TestJob(unittest.TestCase):
         args = 'args'
         num_jobs = '5'
         self.job = Job(self.job_name, OrderedDict(), num_jobs, executable=exe, arguments=args)
-        attributes['arguments'] = args
-        attributes['executable'] = exe
+        attributes.update({'executable': exe, 'arguments': args})
 
         self.expected.update({'_name': self.job_name,
                     '_attributes': attributes,
                     '_num_jobs': int(num_jobs)})
         self.actual = self.job.__dict__
+        self.actual['_attributes'] = dict(self.actual['_attributes'])
         self.msg = 'testing initialization with all values supplied'
         self.assertDictEqual(*self.assert_args)
 
