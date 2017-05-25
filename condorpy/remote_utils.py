@@ -44,9 +44,9 @@ class RemoteClient(object):
 
     def _get_output(self, session):
         stdout = session.makefile('rb', -1)
-        stdout = '\n'.join(stdout.readlines())
+        stdout = '\n'.join([str(line) for line in stdout.readlines()])
         stderr = session.makefile_stderr('rb', -1)
-        stderr = '\n'.join(stderr.readlines())
+        stderr = '\n'.join([str(line) for line in stderr.readlines()])
 
         return stdout, stderr
 
