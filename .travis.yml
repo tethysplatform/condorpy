@@ -6,14 +6,12 @@ python:
   - "3.6"
 # command to install dependencies
 install:
-  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
+  # install htcondor
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test -y
   - sudo apt-get update
   - sudo apt-get upgrade
   - sudo apt-get install libstdc++6
   - strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
-  - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-  - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
-  - ssh -o StrictHostKeyChecking=no localhost 'echo this adds localhost to known_hosts'
   - wget https://github.com/tethysplatform/condorpy/releases/download/v0.1.9/condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - tar -xvzf condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - cd condor-8.6.1-x86_64_Ubuntu14-stripped
@@ -23,6 +21,11 @@ install:
   - sudo ln -s $PWD/bin/* /usr/local/bin/
   - sudo ln -s $PWD/sbin/* /usr/local/sbin/
   - condor_master
+
+  # setup local ssh keys
+  - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
+  - cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
+  - ssh -o StrictHostKeyChecking=no localhost 'echo this adds localhost to known_hosts'
 
   # Install conda
   # We do this conditionally because it saves us some downloading if the
