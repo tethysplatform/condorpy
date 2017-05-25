@@ -6,7 +6,9 @@ python:
   - "3.6"
 # command to install dependencies
 install:
+  - sudo add-apt-repository ppa:ubuntu-toolchain-r/test
   - sudo apt-get update
+  - sudo apt-get upgrade
   - sudo apt-get install libstdc++6
   - strings /usr/lib/x86_64-linux-gnu/libstdc++.so.6 | grep GLIBCXX
   - ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
