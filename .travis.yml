@@ -15,6 +15,7 @@ install:
   - wget https://github.com/tethysplatform/condorpy/releases/download/v0.1.9/condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - tar -xvzf condor-8.6.1-x86_64_Ubuntu14-stripped.tar.gz
   - cd condor-8.6.1-x86_64_Ubuntu14-stripped
+  - ls -lahp
   - ./condor_install --make-personal-condor
   - sudo mkdir /etc/condor
   - sudo ln -s $PWD/condor_config /etc/condor/
