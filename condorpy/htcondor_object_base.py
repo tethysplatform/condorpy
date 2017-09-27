@@ -60,8 +60,7 @@ class HTCondorObjectBase(object):
         """
         return self._remote
 
-    @scheduler.setter
-    def scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
+    def set_scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
         """
         Defines the remote scheduler
 
