@@ -43,8 +43,8 @@ class HTCondorObjectBase(object):
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_id', None)
         if host:
-            object.__setattr__(self, '_remote', RemoteClient(host, username, password, private_key, private_key_pass))
-            object.__setattr__(self, '_remote_id', uuid.uuid4().hex)
+            self.set_scheduler(host=host, username=username, password=password,
+                               private_key=private_key, private_key_pass=private_key_pass)
 
     @property
     def cluster_id(self):
@@ -74,7 +74,8 @@ class HTCondorObjectBase(object):
         Returns:
             An RemoteClient representing the remote scheduler.
         """
-        object.__setattr__(self, '_remote', RemoteClient(host, username, password, private_key, private_key_pass))
+        self._remote = RemoteClient(host, username, password, private_key, private_key_pass)
+        self._remote_id = uuid.uuid4().hex
 
     @property
     def remote_input_files(self):
