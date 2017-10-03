@@ -75,7 +75,8 @@ class HTCondorObjectBase(object):
             An RemoteClient representing the remote scheduler.
         """
         self._remote = RemoteClient(host, username, password, private_key, private_key_pass)
-        self._remote_id = uuid.uuid4().hex
+        if not self._remote_id:
+            self._remote_id = uuid.uuid4().hex
 
     @property
     def remote_input_files(self):
