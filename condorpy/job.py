@@ -229,23 +229,6 @@ class Job(HTCondorObjectBase):
         log.info('Submitting job %s with options: %s', self.name, args)
         return super(Job, self).submit(args)
 
-    def remove(self, options=[], sub_job_num=None):
-        """Removes a job from the job queue, or from being executed.
-
-        Args:
-            options (list of str, optional): A list of command line options for the condor_rm command. For
-                details on valid options see: http://research.cs.wisc.edu/htcondor/manual/current/condor_rm.html.
-                Defaults to an empty list.
-            job_num (int, optional): The number of sub_job to remove rather than the whole cluster. Defaults to None.
-
-        """
-        args = ['condor_rm']
-        args.extend(options)
-        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
-        args.append(job_id)
-        out, err = self._execute(args)
-        return out,err
-
     def edit(self):
         """Interface for CLI edit command.
 

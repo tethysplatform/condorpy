@@ -136,6 +136,23 @@ class HTCondorObjectBase(object):
             self._cluster_id = -1
         return self.cluster_id
 
+    def remove(self, options=[], sub_job_num=None):
+        """Removes a job from the job queue, or from being executed.
+
+        Args:
+            options (list of str, optional): A list of command line options for the condor_rm command. For
+                details on valid options see: http://research.cs.wisc.edu/htcondor/manual/current/condor_rm.html.
+                Defaults to an empty list.
+            job_num (int, optional): The number of sub_job to remove rather than the whole cluster. Defaults to None.
+
+        """
+        args = ['condor_rm']
+        args.extend(options)
+        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        args.append(job_id)
+        out, err = self._execute(args)
+        return out,err
+
     def sync_remote_output(self):
         """Sync the initial directory containing the output and log files with the remote server.
 
@@ -147,8 +164,14 @@ class HTCondorObjectBase(object):
 
         """
         if self._remote:
-            self.remove()
-            self._remote.execute('rm -rf %s' % (self._remote_id,))
+            try:
+                # first see if remote dir is still there
+                self._remote.execute('ls %s' % (self._remote_id,))
+                if self.status != 'Completed':
+                    self.remove()
+                self._remote.execute('rm -rf %s' % (self._remote_id,))
+            except RuntimeError:
+                pass
             self._remote.close()
             del self._remote
 
