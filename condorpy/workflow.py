@@ -208,6 +208,8 @@ class Workflow(HTCondorObjectBase):
         dag_file.write(self.__str__())
         dag_file.close()
         for node in self._node_set:
+            node.job._scheduler = self._scheduler
+            node.job._remote_id = self._remote_id
             node.job._cwd = self._cwd
             node.job._write_job_file()
 
