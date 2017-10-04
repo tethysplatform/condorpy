@@ -204,6 +204,7 @@ class Workflow(HTCondorObjectBase):
         """
         """
         log.debug('writing dag file "%s" in "%s".', self.dag_file, self._cwd)
+        self._make_dir('')
         dag_file = self._open(self.dag_file, 'w')
         dag_file.write(self.__str__())
         dag_file.close()
