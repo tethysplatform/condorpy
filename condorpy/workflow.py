@@ -115,7 +115,7 @@ class Workflow(HTCondorObjectBase):
         """
 
         """
-        return self.name
+        return ''
 
     @property
     def status(self):
@@ -140,7 +140,7 @@ class Workflow(HTCondorObjectBase):
             log.error('Error while updating status for job %s: Job not found.', job_id)
             raise HTCondorError('Job not found.')
 
-        out = out.replace('\"', '')
+        out = out.replace('\"', '').strip()
         log.info('Job %s status: %s', job_id, out)
 
         for status_code_str in out:
@@ -204,12 +204,12 @@ class Workflow(HTCondorObjectBase):
         """
         """
         log.debug('writing dag file "%s" in "%s".', self.dag_file, self._cwd)
-        self._make_dir('')
+        self._make_dir(self.initial_dir)
         dag_file = self._open(self.dag_file, 'w')
         dag_file.write(self.__str__())
         dag_file.close()
         for node in self._node_set:
-            node.job._scheduler = self._scheduler
+            node.job._remote = self._remote
             node.job._remote_id = self._remote_id
             node.job._cwd = self._cwd
             node.job._write_job_file()

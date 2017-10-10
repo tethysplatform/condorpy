@@ -200,7 +200,7 @@ class Job(HTCondorObjectBase):
         if not initial_dir:
             initial_dir = os.curdir #TODO does this conflict with the working directory?
         if self._remote and os.path.isabs(initial_dir):
-                raise RemoteError('Cannot define an absolute path as an initial_dir on a remote scheduler')
+            raise RemoteError('Cannot define an absolute path as an initial_dir on a remote scheduler')
         return initial_dir
 
     def submit(self, queue=None, options=[]):
