@@ -141,12 +141,11 @@ class Workflow(HTCondorObjectBase):
             raise HTCondorError('Job not found.')
 
         out = out.replace('\"', '').strip()
+        log.info('Job %s status: %s', job_id, out)
 
         for status_code_str in out:
             status_code = int(status_code_str)
             key = CONDOR_JOB_STATUSES[status_code]
-
-        log.info('Job %s status: %s', job_id, status_code)
 
         return key
 
