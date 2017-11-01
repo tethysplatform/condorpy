@@ -140,12 +140,19 @@ class Workflow(HTCondorObjectBase):
             log.error('Error while updating status for job %s: Job not found.', job_id)
             raise HTCondorError('Job not found.')
 
-        out = out.replace('\"', '').strip()
-        log.info('Job %s status: %s', job_id, out)
+        out = out.replace('\"', '').split('\n')
 
+
+        status_code = 0
         for status_code_str in out:
-            status_code = int(status_code_str)
-            key = CONDOR_JOB_STATUSES[status_code]
+            try:
+                status_code = int(status_code_str.strip())
+            except:
+                pass
+
+        log.info('Job %s status: %d', job_id, status_code)
+
+        key = CONDOR_JOB_STATUSES[status_code]
 
         return key
 
