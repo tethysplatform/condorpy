@@ -156,6 +156,43 @@ class Workflow(HTCondorObjectBase):
 
         return key
 
+    def _associate_node_ids(self, sub_job_num=None):
+        """
+        Associate Jobs with
+        :return:
+        """
+        # Build condor_q and condor_history commands
+        dag_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        job_delimiter = '+++'
+        attr_delimiter = ';;;'
+
+        format = [
+            '-format', '"%d' + attr_delimiter + '"', 'ClusterId',
+            '-format', '"%v' + attr_delimiter + '"', 'Cmd',
+            '-format', '"%v' + attr_delimiter + '"', 'Args',     # Old way
+            '-format', '"%v' + job_delimiter + '"', 'Arguments'  # New way
+        ]
+        # Get ID, Executable, and Arguments for each job that is either started to be processed or finished in the workflow
+        cmd = 'condor_q -constraint DAGManJobID=={0} {1} && condor_history -constraint DAGManJobID=={0} {1}'.format(dag_id, ' '.join(format))
+        # 'condor_q -constraint DAGManJobID==1018 -format "%d\n" ClusterId -format "%s\n" CMD -format "%s\n" ARGS && condor_history -constraint DAGManJobID==1018 -format "%d\n" ClusterId -format "%s\n" CMD -format "%s\n" ARGS'
+        args = [cmd]
+        out, err = self._execute(args, shell=True)
+        if err:
+            log.error('Error while associating ids for jobs dag %s: %s', dag_id, err)
+            raise HTCondorError(err)
+        # if not out:
+        #     log.error('Error while associating ids for jobs in dag %s: Job not found.', dag_id)
+        #     raise HTCondorError('Job not found.')
+
+        # out = out.replace('\"', '').split('\n')
+        print(out)
+        jobs_out = out.split(job_delimiter)
+        for job_out in jobs_out:
+            cluster_id, cmd, args, arguments = job_out.split(attr_delimiter)
+            print(cluster_id, cmd, args, arguments)
+
+
+
     def add_node(self, node):
         """
         """
