@@ -23,6 +23,7 @@ class HTCondorObjectBase(object):
     """
 
     """
+    NULL_CLUSTER_ID = 0
 
     def __init__(self,
                  host=None,
@@ -36,7 +37,7 @@ class HTCondorObjectBase(object):
 
 
         """
-        object.__setattr__(self, '_cluster_id', 0)
+        object.__setattr__(self, '_cluster_id', self.NULL_CLUSTER_ID)
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_input_files', remote_input_files or None)
         object.__setattr__(self, '_cwd', working_directory)

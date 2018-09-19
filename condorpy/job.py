@@ -149,7 +149,7 @@ class Job(HTCondorObjectBase):
 
         """
         status_dict = self.statuses
-        #determin job status
+        #determine job status
         status = "Various"
         for key, val in status_dict.iteritems():
             if val == self.num_jobs:
@@ -377,7 +377,11 @@ class Job(HTCondorObjectBase):
             status_dict[val] = 0
 
         for status_code_str in out:
-            status_code = int(status_code_str)
+            status_code = 0
+            try:
+                status_code = int(status_code_str)
+            except ValueError:
+                pass
             key = CONDOR_JOB_STATUSES[status_code]
             status_dict[key] += 1
 

@@ -102,6 +102,8 @@ class Workflow(HTCondorObjectBase):
     def node_set(self):
         """
         """
+        if self.cluster_id != self.NULL_CLUSTER_ID:
+            self.update_node_ids()
         return self._node_set
 
     @property
@@ -119,7 +121,17 @@ class Workflow(HTCondorObjectBase):
 
     @property
     def status(self):
+        """
+        Returns status of workflow as a whole (DAG status).
+        """
         return self._update_status()
+
+    @property
+    def statuses(self):
+        """
+        Get status of workflow nodes.
+        """
+        return self._update_statuses()
 
     def _update_status(self, sub_job_num=None):
         """Gets the workflow status.
@@ -156,10 +168,29 @@ class Workflow(HTCondorObjectBase):
 
         return key
 
-    def _associate_node_ids(self, sub_job_num=None):
+    def _update_statuses(self, sub_job_num=None):
         """
-        Associate Jobs with
-        :return:
+        Update statuses of jobs nodes in workflow.
+        """
+        # initialize status dictionary
+        status_dict = dict()
+
+        for val in CONDOR_JOB_STATUSES.itervalues():
+            status_dict[val] = []
+
+        for node in self.node_set:
+            job = node.job
+            job_status = job.status
+            try:
+                status_dict[job_status].append(node)
+            except KeyError:
+                status_dict['Unexpanded'].append(node)
+
+        return status_dict
+
+    def update_node_ids(self, sub_job_num=None):
+        """
+        Associate Jobs with respective cluster ids.
         """
         # Build condor_q and condor_history commands
         dag_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
@@ -174,24 +205,59 @@ class Workflow(HTCondorObjectBase):
         ]
         # Get ID, Executable, and Arguments for each job that is either started to be processed or finished in the workflow
         cmd = 'condor_q -constraint DAGManJobID=={0} {1} && condor_history -constraint DAGManJobID=={0} {1}'.format(dag_id, ' '.join(format))
+
         # 'condor_q -constraint DAGManJobID==1018 -format "%d\n" ClusterId -format "%s\n" CMD -format "%s\n" ARGS && condor_history -constraint DAGManJobID==1018 -format "%d\n" ClusterId -format "%s\n" CMD -format "%s\n" ARGS'
-        args = [cmd]
-        out, err = self._execute(args, shell=True)
+        _args = [cmd]
+        out, err = self._execute(_args, shell=True)
+
         if err:
             log.error('Error while associating ids for jobs dag %s: %s', dag_id, err)
             raise HTCondorError(err)
-        # if not out:
-        #     log.error('Error while associating ids for jobs in dag %s: Job not found.', dag_id)
-        #     raise HTCondorError('Job not found.')
+        if not out:
+            log.warning('Error while associating ids for jobs in dag %s: No jobs found for dag.', dag_id)
 
-        # out = out.replace('\"', '').split('\n')
-        print(out)
-        jobs_out = out.split(job_delimiter)
-        for job_out in jobs_out:
-            cluster_id, cmd, args, arguments = job_out.split(attr_delimiter)
-            print(cluster_id, cmd, args, arguments)
+        try:
+            # Split into one line per job
+            jobs_out = out.split(job_delimiter)
 
+            # Match node to cluster id using combination of cmd and arguments
+            for node in self._node_set:
+                job = node.job
 
+                # Skip jobs that already have cluster id defined
+                if job.cluster_id != job.NULL_CLUSTER_ID:
+                    continue
+
+                for job_out in jobs_out:
+                    if not job_out or attr_delimiter not in job_out:
+                        continue
+
+                    # Split line by attributes
+                    cluster_id, cmd, _args, _arguments = job_out.split(attr_delimiter)
+
+                    # If new form of arguments is used, _args will be 'undefined' and _arguments will not
+                    if _args == 'undefined' and _arguments != 'undefined':
+                        args = _arguments.strip()
+
+                    # If both are undefined, then there are no arguments
+                    elif _args == 'undefined' and _arguments == 'undefined':
+                        args = None
+
+                    # Otherwise, using old form and _arguments will be 'undefined' and _args will not.
+                    else:
+                        args = _args.strip()
+
+                    job_cmd = job.executable
+                    job_args = job.arguments.strip() if job.arguments else None
+
+                    if job_cmd in cmd and job_args == args:
+                        log.info('Linking cluster_id %s to job with command and arguments: %s %s', cluster_id,
+                                  job_cmd, job_args)
+                        job._cluster_id = int(cluster_id)
+                        break
+
+        except ValueError as e:
+            log.warning(e.message)
 
     def add_node(self, node):
         """
