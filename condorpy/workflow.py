@@ -75,6 +75,10 @@ class Workflow(HTCondorObjectBase):
         return self._name
 
     @property
+    def num_jobs(self):
+        return len(self._node_set)
+
+    @property
     def config(self):
         """
         """
@@ -119,56 +123,56 @@ class Workflow(HTCondorObjectBase):
         """
         return ''
 
-    @property
-    def status(self):
-        """
-        Returns status of workflow as a whole (DAG status).
-        """
-        return self._update_status()
+    # @property
+    # def status(self):
+    #     """
+    #     Returns status of workflow as a whole (DAG status).
+    #     """
+    #     return self._update_status()
+    #
+    # @property
+    # def statuses(self):
+    #     """
+    #     Get status of workflow nodes.
+    #     """
+    #     return self._update_statuses()
 
-    @property
-    def statuses(self):
-        """
-        Get status of workflow nodes.
-        """
-        return self._update_statuses()
+    # def _update_status(self, sub_job_num=None):
+    #     """Gets the workflow status.
+    #
+    #     Return:
+    #         str: The current status of the workflow.
+    #
+    #     """
+    #     job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+    #     format = ['-format', '"%d"', 'JobStatus']
+    #     cmd = 'condor_q {0} {1} && condor_history {0} {1}'.format(job_id, ' '.join(format))
+    #     args = [cmd]
+    #     out, err = self._execute(args, shell=True)
+    #     if err:
+    #         log.error('Error while updating status for job %s: %s', job_id, err)
+    #         raise HTCondorError(err)
+    #     if not out:
+    #         log.error('Error while updating status for job %s: Job not found.', job_id)
+    #         raise HTCondorError('Job not found.')
+    #
+    #     out = out.replace('\"', '').split('\n')
+    #
+    #
+    #     status_code = 0
+    #     for status_code_str in out:
+    #         try:
+    #             status_code = int(status_code_str.strip())
+    #         except:
+    #             pass
+    #
+    #     log.info('Job %s status: %d', job_id, status_code)
+    #
+    #     key = CONDOR_JOB_STATUSES[status_code]
+    #
+    #     return key
 
     def _update_status(self, sub_job_num=None):
-        """Gets the workflow status.
-
-        Return:
-            str: The current status of the workflow.
-
-        """
-        job_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
-        format = ['-format', '"%d"', 'JobStatus']
-        cmd = 'condor_q {0} {1} && condor_history {0} {1}'.format(job_id, ' '.join(format))
-        args = [cmd]
-        out, err = self._execute(args, shell=True)
-        if err:
-            log.error('Error while updating status for job %s: %s', job_id, err)
-            raise HTCondorError(err)
-        if not out:
-            log.error('Error while updating status for job %s: Job not found.', job_id)
-            raise HTCondorError('Job not found.')
-
-        out = out.replace('\"', '').split('\n')
-
-
-        status_code = 0
-        for status_code_str in out:
-            try:
-                status_code = int(status_code_str.strip())
-            except:
-                pass
-
-        log.info('Job %s status: %d', job_id, status_code)
-
-        key = CONDOR_JOB_STATUSES[status_code]
-
-        return key
-
-    def _update_statuses(self, sub_job_num=None):
         """
         Update statuses of jobs nodes in workflow.
         """
@@ -176,15 +180,15 @@ class Workflow(HTCondorObjectBase):
         status_dict = dict()
 
         for val in CONDOR_JOB_STATUSES.itervalues():
-            status_dict[val] = []
+            status_dict[val] = 0
 
         for node in self.node_set:
             job = node.job
-            job_status = job.status
             try:
-                status_dict[job_status].append(node)
-            except KeyError:
-                status_dict['Unexpanded'].append(node)
+                job_status = job.status
+                status_dict[job_status] += 1
+            except (KeyError, HTCondorError):
+                status_dict['Unexpanded'] += 1
 
         return status_dict
 

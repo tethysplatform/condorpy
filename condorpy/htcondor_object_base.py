@@ -55,11 +55,35 @@ class HTCondorObjectBase(object):
         return self._cluster_id
 
     @property
+    def num_jobs(self):
+        return 0
+
+    @property
     def scheduler(self):
         """
         The remote scheduler where the job/workflow will be submitted
         """
         return self._remote
+
+    @property
+    def status(self):
+        """The status
+
+        """
+        status_dict = self.statuses
+        # determine job status
+        status = "Various"
+        for key, val in status_dict.iteritems():
+            if val == self.num_jobs:
+                status = key
+        return status
+
+    @property
+    def statuses(self):
+        """
+        Return dictionary of all process statuses
+        """
+        return self._update_status()
 
     def set_scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
         """

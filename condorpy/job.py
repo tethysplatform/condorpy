@@ -143,25 +143,25 @@ class Job(HTCondorObjectBase):
     def num_jobs(self, num_jobs):
         self._num_jobs = int(num_jobs)
 
-    @property
-    def status(self):
-        """The job status
+    # @property
+    # def status(self):
+    #     """The job status
+    #
+    #     """
+    #     status_dict = self.statuses
+    #     # determine job status
+    #     status = "Various"
+    #     for key, val in status_dict.iteritems():
+    #         if val == self.num_jobs:
+    #             status = key
+    #     return status
 
-        """
-        status_dict = self.statuses
-        #determine job status
-        status = "Various"
-        for key, val in status_dict.iteritems():
-            if val == self.num_jobs:
-                status = key
-        return status
-
-    @property
-    def statuses(self):
-        """
-        Return dictionary of all process statuses
-        """
-        return self._update_status()
+    # @property
+    # def statuses(self):
+    #     """
+    #     Return dictionary of all process statuses
+    #     """
+    #     return self._update_status()
 
     @property
     def job_file(self):
