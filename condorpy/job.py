@@ -143,26 +143,6 @@ class Job(HTCondorObjectBase):
     def num_jobs(self, num_jobs):
         self._num_jobs = int(num_jobs)
 
-    # @property
-    # def status(self):
-    #     """The job status
-    #
-    #     """
-    #     status_dict = self.statuses
-    #     # determine job status
-    #     status = "Various"
-    #     for key, val in status_dict.iteritems():
-    #         if val == self.num_jobs:
-    #             status = key
-    #     return status
-
-    # @property
-    # def statuses(self):
-    #     """
-    #     Return dictionary of all process statuses
-    #     """
-    #     return self._update_status()
-
     @property
     def job_file(self):
         """The path to the submit description file representing this job.
@@ -352,7 +332,7 @@ class Job(HTCondorObjectBase):
         format = ['-format', '"%d"', 'JobStatus']
         cmd = 'condor_q {0} {1} && condor_history {0} {1}'.format(job_id, ' '.join(format))
         args = [cmd]
-        out, err = self._execute(args, shell=True)
+        out, err = self._execute(args, shell=True, run_in_job_dir=False)
         if err:
             log.error('Error while updating status for job %s: %s', job_id, err)
             raise HTCondorError(err)

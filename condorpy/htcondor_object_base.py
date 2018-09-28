@@ -70,6 +70,9 @@ class HTCondorObjectBase(object):
         """The status
 
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         status_dict = self.statuses
         # determine job status
         status = "Various"
@@ -83,6 +86,9 @@ class HTCondorObjectBase(object):
         """
         Return dictionary of all process statuses
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         return self._update_status()
 
     def set_scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
@@ -201,14 +207,15 @@ class HTCondorObjectBase(object):
             del self._remote
 
     @set_cwd
-    def _execute(self, args, shell=False):
+    def _execute(self, args, shell=False, run_in_job_dir=True):
         out = None
         err = None
         if self._remote:
             log.info('Executing remote command %s', ' '.join(args))
             cmd = ' '.join(args)
             try:
-                cmd = 'cd %s && %s' % (self._remote_id, cmd)
+                if run_in_job_dir:
+                    cmd = 'cd %s && %s' % (self._remote_id, cmd)
                 out = '\n'.join(self._remote.execute(cmd))
             except RuntimeError as e:
                 err = str(e)
