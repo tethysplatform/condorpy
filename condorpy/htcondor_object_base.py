@@ -23,6 +23,7 @@ class HTCondorObjectBase(object):
     """
 
     """
+    NULL_CLUSTER_ID = 0
 
     def __init__(self,
                  host=None,
@@ -36,7 +37,7 @@ class HTCondorObjectBase(object):
 
 
         """
-        object.__setattr__(self, '_cluster_id', 0)
+        object.__setattr__(self, '_cluster_id', self.NULL_CLUSTER_ID)
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_input_files', remote_input_files or None)
         object.__setattr__(self, '_cwd', working_directory)
@@ -52,6 +53,10 @@ class HTCondorObjectBase(object):
         The id assigned to the job (called a cluster in HTConodr) when the job is submitted.
         """
         return self._cluster_id
+
+    @property
+    def num_jobs(self):
+        return 1
 
     @property
     def scheduler(self):
@@ -176,14 +181,15 @@ class HTCondorObjectBase(object):
             del self._remote
 
     @set_cwd
-    def _execute(self, args, shell=False):
+    def _execute(self, args, shell=False, run_in_job_dir=True):
         out = None
         err = None
         if self._remote:
             log.info('Executing remote command %s', ' '.join(args))
             cmd = ' '.join(args)
             try:
-                cmd = 'cd %s && %s' % (self._remote_id, cmd)
+                if run_in_job_dir:
+                    cmd = 'cd %s && %s' % (self._remote_id, cmd)
                 out = '\n'.join(self._remote.execute(cmd))
             except RuntimeError as e:
                 err = str(e)

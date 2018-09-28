@@ -145,11 +145,14 @@ class Job(HTCondorObjectBase):
 
     @property
     def status(self):
-        """The job status
+        """The status
 
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         status_dict = self.statuses
-        #determin job status
+        # determine job status
         status = "Various"
         for key, val in status_dict.iteritems():
             if val == self.num_jobs:
@@ -161,6 +164,9 @@ class Job(HTCondorObjectBase):
         """
         Return dictionary of all process statuses
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         return self._update_status()
 
     @property
@@ -352,7 +358,7 @@ class Job(HTCondorObjectBase):
         format = ['-format', '"%d"', 'JobStatus']
         cmd = 'condor_q {0} {1} && condor_history {0} {1}'.format(job_id, ' '.join(format))
         args = [cmd]
-        out, err = self._execute(args, shell=True)
+        out, err = self._execute(args, shell=True, run_in_job_dir=False)
         if err:
             log.error('Error while updating status for job %s: %s', job_id, err)
             raise HTCondorError(err)
@@ -377,7 +383,11 @@ class Job(HTCondorObjectBase):
             status_dict[val] = 0
 
         for status_code_str in out:
-            status_code = int(status_code_str)
+            status_code = 0
+            try:
+                status_code = int(status_code_str)
+            except ValueError:
+                pass
             key = CONDOR_JOB_STATUSES[status_code]
             status_dict[key] += 1
 
