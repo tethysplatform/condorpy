@@ -127,6 +127,9 @@ class Workflow(HTCondorObjectBase):
         """
         Returns status of workflow as a whole (DAG status).
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         return self._update_status()
 
     @property
@@ -134,6 +137,9 @@ class Workflow(HTCondorObjectBase):
         """
         Get status of workflow nodes.
         """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
         return self._update_statuses()
 
     def _update_status(self, sub_job_num=None):

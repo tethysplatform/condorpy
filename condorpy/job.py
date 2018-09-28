@@ -144,6 +144,32 @@ class Job(HTCondorObjectBase):
         self._num_jobs = int(num_jobs)
 
     @property
+    def status(self):
+        """The status
+
+        """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
+        status_dict = self.statuses
+        # determine job status
+        status = "Various"
+        for key, val in status_dict.iteritems():
+            if val == self.num_jobs:
+                status = key
+        return status
+
+    @property
+    def statuses(self):
+        """
+        Return dictionary of all process statuses
+        """
+        if self.cluster_id == self.NULL_CLUSTER_ID:
+            return "Unexpanded"
+
+        return self._update_status()
+
+    @property
     def job_file(self):
         """The path to the submit description file representing this job.
 
