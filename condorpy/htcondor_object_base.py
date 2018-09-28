@@ -56,7 +56,7 @@ class HTCondorObjectBase(object):
 
     @property
     def num_jobs(self):
-        return 0
+        return 1
 
     @property
     def scheduler(self):
