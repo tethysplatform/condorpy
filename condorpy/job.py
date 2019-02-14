@@ -78,7 +78,7 @@ class Job(HTCondorObjectBase):
         attributes = attributes or OrderedDict()
         attributes['job_name'] = name
         attributes.update(kwargs)
-        for attr, value in attributes.items():
+        for attr, value in list(attributes.items()):
             self.set(attr, value)
 
     def __str__(self):
@@ -154,7 +154,7 @@ class Job(HTCondorObjectBase):
         status_dict = self.statuses
         # determine job status
         status = "Various"
-        for key, val in status_dict.iteritems():
+        for key, val in status_dict.items():
             if val == self.num_jobs:
                 status = key
         return status
@@ -331,7 +331,7 @@ class Job(HTCondorObjectBase):
             value = 'true'
         elif isinstance(value, list) or isinstance(value, tuple):
             join_function = join_function_template(', ', str)
-            for key in join_functions.keys():
+            for key in list(join_functions.keys()):
                 if attr.endswith(key):
                     join_function = join_functions[key]
             value = join_function(value)
@@ -379,7 +379,7 @@ class Job(HTCondorObjectBase):
 
         #initialize status dictionary
         status_dict = dict()
-        for val in CONDOR_JOB_STATUSES.itervalues():
+        for val in CONDOR_JOB_STATUSES.values():
             status_dict[val] = 0
 
         for status_code_str in out:
@@ -395,7 +395,7 @@ class Job(HTCondorObjectBase):
 
     def _list_attributes(self):
         attribute_list = []
-        for k, v in self.attributes.items():
+        for k, v in list(self.attributes.items()):
             if v:
                 attribute_list.append(k + ' = ' + str(v))
         return attribute_list

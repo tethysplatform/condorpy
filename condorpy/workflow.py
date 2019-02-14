@@ -57,7 +57,7 @@ class Workflow(HTCondorObjectBase):
 
         if self.max_jobs:
             max_jobs_list = ''
-            for category, max_jobs in self.max_jobs.iteritems():
+            for category, max_jobs in self.max_jobs.items():
                 max_jobs_list += 'MAXJOBS {0} {1}\n'.format(category, str(max_jobs))
             result.append(max_jobs_list)
 
@@ -184,7 +184,7 @@ class Workflow(HTCondorObjectBase):
         # initialize status dictionary
         status_dict = dict()
 
-        for val in CONDOR_JOB_STATUSES.itervalues():
+        for val in CONDOR_JOB_STATUSES.values():
             status_dict[val] = 0
 
         for node in self.node_set:
