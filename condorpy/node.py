@@ -527,7 +527,7 @@ class Node(object):
         result = ''
         if self.vars:
             result = 'VARS %s' % (self.job.name,)
-            for key, value in self.vars.iteritems():
+            for key, value in self.vars.items():
                 result += ' %s="%s"' % (key, value)
             result += '\n'
         return result
