@@ -3,6 +3,7 @@ import os
 import paramiko
 import scp
 
+
 class RemoteClient(object):
     def __init__(self,
                  host,
@@ -43,10 +44,10 @@ class RemoteClient(object):
         return self._scp
 
     def _get_output(self, session):
-        stdout = session.makefile('rb', -1)
-        stdout = '\n'.join([str(line) for line in stdout.readlines()])
-        stderr = session.makefile_stderr('rb', -1)
-        stderr = '\n'.join([str(line) for line in stderr.readlines()])
+        stdout = session.makefile('r', -1)
+        stdout = '\n'.join([line for line in stdout.readlines()])
+        stderr = session.makefile_stderr('r', -1)
+        stderr = '\n'.join([line for line in stderr.readlines()])
 
         return stdout, stderr
 

@@ -266,7 +266,7 @@ class Workflow(HTCondorObjectBase):
                         break
 
         except ValueError as e:
-            log.warning(e.message)
+            log.warning(str(e))
 
     def add_node(self, node):
         """

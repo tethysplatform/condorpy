@@ -199,6 +199,8 @@ class HTCondorObjectBase(object):
             log.info('Executing local command %s', ' '.join(args))
             process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=shell)
             out, err = process.communicate()
+            out = out.decode() if isinstance(out, bytes) else out
+            err = err.decode() if isinstance(err, bytes) else err
 
         log.info('Execute results - out: %s, err: %s', out, err)
         return out, err
