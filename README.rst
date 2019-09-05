@@ -2,7 +2,7 @@
 CondorPy
 ========
 :condorpy: Python interface for high throughput computing with HTCondor
-:Version: 0.5.1
+:Version: 0.5.2
 :Author: Scott Christensen
 :Team: Tethys Platform
 :Homepage: http://tethysplatform.org/condorpy/
