@@ -23,6 +23,9 @@ class RemoteClient(object):
         self._scp = None
         self._sftp = None
 
+    def __del__(self):
+        self.close()
+
     @property
     def transport(self):
         if self._transport is None or not self._transport.is_active():
@@ -52,13 +55,17 @@ class RemoteClient(object):
         return stdout, stderr
 
     def execute(self, command):
-        session = self.transport.open_session()
-        session.exec_command(command)
-        stdout, stderr = self._get_output(session)
-        exit_status = session.recv_exit_status()
-        if exit_status != 0:
-            msg = "The command '{0}' failed on host '{1}':\n{2}\n{3}".format(command, self.host, stdout, stderr)
-            raise RuntimeError(msg)
+        session = None
+        try:
+            session = self.transport.open_session()
+            session.exec_command(command)
+            stdout, stderr = self._get_output(session)
+            exit_status = session.recv_exit_status()
+            if exit_status != 0:
+                msg = "The command '{0}' failed on host '{1}':\n{2}\n{3}".format(command, self.host, stdout, stderr)
+                raise RuntimeError(msg)
+        finally:
+            session and session.close()
 
         return stdout, stderr
 
