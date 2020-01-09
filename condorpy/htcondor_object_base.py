@@ -111,7 +111,8 @@ class HTCondorObjectBase(object):
         """
         def wrapped(self, *args, **kwargs):
             log.info('Calling function: %s with args=%s', fn, args if args else [])
-            cwd = os.getcwd()
+            # Use the CONDORPY_HOME environment variable to force set_cwd to always change to the same directory
+            cwd = os.environ.get('CONDORPY_HOME', os.getcwd())
             log.info('Saved cwd: %s', cwd)
             os.chdir(self._cwd)
             log.info('Changing working directory to: %s', self._cwd)
