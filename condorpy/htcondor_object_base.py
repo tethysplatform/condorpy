@@ -32,7 +32,8 @@ class HTCondorObjectBase(object):
                  private_key=None,
                  private_key_pass=None,
                  remote_input_files=None,
-                 working_directory='.'):
+                 working_directory='.',
+                 port=22):
         """
 
 
@@ -44,7 +45,7 @@ class HTCondorObjectBase(object):
         object.__setattr__(self, '_remote', None)
         object.__setattr__(self, '_remote_id', None)
         if host:
-            self.set_scheduler(host=host, username=username, password=password,
+            self.set_scheduler(host=host, port=port, username=username, password=password,
                                private_key=private_key, private_key_pass=private_key_pass)
 
     @property
@@ -65,7 +66,7 @@ class HTCondorObjectBase(object):
         """
         return self._remote
 
-    def set_scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None):
+    def set_scheduler(self, host, username='root', password=None, private_key=None, private_key_pass=None, port=22):
         """
         Defines the remote scheduler
 
@@ -75,11 +76,12 @@ class HTCondorObjectBase(object):
             password (str, optional): the password for username on the remote scheduler. Either the password or the private_key must be defined. Default is None.
             private_key (str, optional): the path to the private ssh key used to connect to the remote scheduler. Either the password or the private_key must be defined. Default is None.
             private_key_pass (str, optional): the passphrase for the private_key. Default is None.
+            port (int, optional): the SSH port of the remote scheduler. Default is 22.
 
         Returns:
             An RemoteClient representing the remote scheduler.
         """
-        self._remote = RemoteClient(host, username, password, private_key, private_key_pass)
+        self._remote = RemoteClient(host, username, password, private_key, private_key_pass, port=port)
         self._remote_id = uuid.uuid4().hex
 
     @property
