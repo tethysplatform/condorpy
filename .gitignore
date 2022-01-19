@@ -6,3 +6,5 @@ test/.coverage
 .activate
 .vscode
 *.egg-info
+build
+dist
