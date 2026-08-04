@@ -81,10 +81,7 @@ class HTCondorObjectBase(object):
         Returns:
             An RemoteClient representing the remote scheduler.
         """
-        # Callers (e.g. tethys CondorBase.condor_object) re-invoke this on every
-        # property access. Rebuilding the client each time discarded its cached
-        # SSH transport, forcing a fresh handshake per remote command; reuse an
-        # existing client when the connection parameters are unchanged.
+        # reuse an existing client when the connection parameters are unchanged.
         existing = getattr(self, '_remote', None)
         if existing is not None and existing.matches(host, username, password, private_key,
                                                      private_key_pass, port):
