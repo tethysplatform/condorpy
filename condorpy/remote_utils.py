@@ -1,7 +1,38 @@
 import os
+import threading
 
 import paramiko
 import scp
+
+# Decrypting a passphrase-protected private key runs a KDF (~0.5s) and was being
+# repeated on every RemoteClient construction -- several times per job status poll.
+# Key material only changes when the file does, so cache on (path, passphrase,
+# mtime); the mtime keeps a rotated key from being served stale.
+_private_key_cache = {}
+_private_key_cache_lock = threading.Lock()
+
+
+def load_private_key(filename, password=None):
+    """Load an RSA private key, caching the decrypted result.
+
+    Args:
+        filename (str): path to the private key file.
+        password (str, optional): passphrase for the private key.
+
+    Returns:
+        paramiko.RSAKey: the decrypted key.
+    """
+    try:
+        mtime = os.path.getmtime(filename)
+    except OSError:
+        mtime = None
+    cache_key = (filename, password, mtime)
+    with _private_key_cache_lock:
+        key = _private_key_cache.get(cache_key)
+        if key is None:
+            key = paramiko.RSAKey.from_private_key_file(filename=filename, password=password)
+            _private_key_cache[cache_key] = key
+        return key
 
 
 class RemoteClient(object):
@@ -15,13 +46,27 @@ class RemoteClient(object):
         self.host = host
         self.username = username
         self.password = password
+        self.private_key_path = None
+        self.private_key_pass = private_key_pass
         if private_key:
             private_key = os.path.expanduser(private_key)
-            self.private_key = paramiko.RSAKey.from_private_key_file(filename=private_key, password=private_key_pass)
+            self.private_key_path = private_key
+            self.private_key = load_private_key(private_key, private_key_pass)
         self.port = port
         self._transport = None
         self._scp = None
         self._sftp = None
+
+    def matches(self, host, username, password, private_key, private_key_pass, port):
+        """True if this client already targets the given connection parameters."""
+        return (
+            self.host == host
+            and self.username == username
+            and self.password == password
+            and self.port == port
+            and self.private_key_path == (os.path.expanduser(private_key) if private_key else None)
+            and self.private_key_pass == private_key_pass
+        )
 
     def __del__(self):
         self.close()

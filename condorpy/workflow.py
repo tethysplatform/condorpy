@@ -104,9 +104,14 @@ class Workflow(HTCondorObjectBase):
 
     @property
     def node_set(self):
+        """The set of nodes in this workflow.
+
+        Reading this attribute used to run ``update_node_ids()`` -- and therefore a
+        remote query -- on every access, so simply iterating the nodes cost a round
+        trip each time. Node ids only need to be resolved once per object, so the
+        result is remembered; call ``update_node_ids()`` directly to force a refresh.
         """
-        """
-        if self.cluster_id != self.NULL_CLUSTER_ID:
+        if self.cluster_id != self.NULL_CLUSTER_ID and not getattr(self, '_node_ids_resolved', False):
             self.update_node_ids()
         return self._node_set
 
@@ -177,6 +182,41 @@ class Workflow(HTCondorObjectBase):
 
         return key
 
+    def node_statuses_by_cluster_id(self, sub_job_num=None):
+        """Get the status of every node in the DAG with a single remote query.
+
+        Querying each node individually costs one round trip per node (two, counting
+        condor_history), which dominates status-polling cost on large DAGs. The
+        DAGManJobID constraint already returns every node of this workflow, so one
+        query is sufficient.
+
+        Returns:
+            dict: cluster_id (int) -> condor status name (str), e.g. {12: 'Running'}
+        """
+        dag_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        job_delimiter = '+++'
+        attr_delimiter = ';;;'
+        format = [
+            '-format', '"%d' + attr_delimiter + '"', 'ClusterId',
+            '-format', '"%d' + job_delimiter + '"', 'JobStatus',
+        ]
+        cmd = ('condor_q -constraint DAGManJobID=={0} {1} && '
+               'condor_history -constraint DAGManJobID=={0} {1}').format(dag_id, ' '.join(format))
+        out, err = self._execute([cmd], shell=True, run_in_job_dir=False)
+        if err:
+            raise HTCondorError(err)
+
+        statuses = dict()
+        for record in out.replace('"', '').split(job_delimiter):
+            parts = [p for p in record.strip().split(attr_delimiter) if p != '']
+            if len(parts) < 2:
+                continue
+            try:
+                statuses[int(parts[0])] = CONDOR_JOB_STATUSES[int(parts[1])]
+            except (ValueError, KeyError):
+                continue
+        return statuses
+
     def _update_statuses(self, sub_job_num=None):
         """
         Update statuses of jobs nodes in workflow.
@@ -187,10 +227,22 @@ class Workflow(HTCondorObjectBase):
         for val in CONDOR_JOB_STATUSES.values():
             status_dict[val] = 0
 
+        # One batched query for the whole DAG; fall back to per-node queries only
+        # if the batched form fails (e.g. an older schedd).
+        try:
+            by_cluster_id = self.node_statuses_by_cluster_id(sub_job_num=sub_job_num)
+        except (HTCondorError, KeyError, ValueError):
+            by_cluster_id = None
+
         for node in self.node_set:
             job = node.job
             try:
-                job_status = job.status
+                if by_cluster_id is not None:
+                    job_status = by_cluster_id.get(job.cluster_id)
+                    if job_status is None:
+                        job_status = 'Unexpanded' if job.cluster_id == job.NULL_CLUSTER_ID else job.status
+                else:
+                    job_status = job.status
                 status_dict[job_status] += 1
             except (KeyError, HTCondorError):
                 status_dict['Unexpanded'] += 1
@@ -265,6 +317,12 @@ class Workflow(HTCondorObjectBase):
                         job._cluster_id = int(cluster_id)
                         break
 
+            # Every node that could be resolved has been; don't re-query on each
+            # node_set access (see the node_set property).
+            self._node_ids_resolved = all(
+                node.job.cluster_id != node.job.NULL_CLUSTER_ID for node in self._node_set
+            )
+
         except ValueError as e:
             log.warning(str(e))
 
@@ -273,6 +331,8 @@ class Workflow(HTCondorObjectBase):
         """
         assert isinstance(node, Node)
         self._node_set.add(node)
+        # A new node has no cluster id yet, so ids must be resolved again.
+        self._node_ids_resolved = False
 
     def add_job(self, job):
         """
