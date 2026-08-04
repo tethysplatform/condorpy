@@ -4,10 +4,7 @@ import threading
 import paramiko
 import scp
 
-# Decrypting a passphrase-protected private key runs a KDF (~0.5s) and was being
-# repeated on every RemoteClient construction -- several times per job status poll.
-# Key material only changes when the file does, so cache on (path, passphrase,
-# mtime); the mtime keeps a rotated key from being served stale.
+
 _private_key_cache = {}
 _private_key_cache_lock = threading.Lock()
 
