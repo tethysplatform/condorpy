@@ -104,12 +104,7 @@ class Workflow(HTCondorObjectBase):
 
     @property
     def node_set(self):
-        """The set of nodes in this workflow.
-
-        Reading this attribute used to run ``update_node_ids()`` -- and therefore a
-        remote query -- on every access, so simply iterating the nodes cost a round
-        trip each time. Node ids only need to be resolved once per object, so the
-        result is remembered; call ``update_node_ids()`` directly to force a refresh.
+        """
         """
         if self.cluster_id != self.NULL_CLUSTER_ID and not getattr(self, '_node_ids_resolved', False):
             self.update_node_ids()
@@ -183,13 +178,10 @@ class Workflow(HTCondorObjectBase):
         return key
 
     def node_statuses_by_cluster_id(self, sub_job_num=None):
-        """Get the status of every node in the DAG with a single remote query.
-
-        Querying each node individually costs one round trip per node (two, counting
-        condor_history), which dominates status-polling cost on large DAGs. The
-        DAGManJobID constraint already returns every node of this workflow, so one
-        query is sufficient.
-
+        """
+        Get the status of every node in the DAG with a single remote query.
+        Parameters:
+            sub_job_num (int, optional): The sub-job number of the DAG.
         Returns:
             dict: cluster_id (int) -> condor status name (str), e.g. {12: 'Running'}
         """
