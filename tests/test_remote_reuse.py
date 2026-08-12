@@ -12,6 +12,7 @@ from unittest import mock
 import paramiko
 
 from condorpy import Job, Workflow
+from condorpy.node import Node
 from condorpy.remote_utils import RemoteClient, load_private_key
 import condorpy.remote_utils as remote_utils
 
@@ -86,35 +87,49 @@ class TestNodeIdResolution(unittest.TestCase):
         self.workflow = Workflow('test_nodes', config='', max_jobs=None)
         self.workflow._cluster_id = 42
 
-    def test_node_set_resolves_ids_once(self):
+    def resolved_node(self, name, cluster_id=7):
+        node = Node(Job(name))
+        node.job._cluster_id = cluster_id
+        return node
+
+    def test_node_set_queries_while_nodes_are_unresolved(self):
+        self.workflow.add_job(Job('unresolved'))
         with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
-            self.workflow._node_ids_resolved = True
+            self.workflow.node_set
+            self.workflow.node_set
+            self.assertEqual(2, update_node_ids.call_count)
+
+    def test_node_set_skips_query_when_all_nodes_are_resolved(self):
+        self.workflow.add_node(self.resolved_node('done'))
+        with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
             self.workflow.node_set
             self.workflow.node_set
             update_node_ids.assert_not_called()
 
-    def test_node_set_resolves_ids_when_unresolved(self):
+    def test_empty_node_set_is_not_queried(self):
+        with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
+            self.workflow.node_set
+            update_node_ids.assert_not_called()
+
+    def test_node_added_after_resolution_is_resolved(self):
+        self.workflow.add_node(self.resolved_node('done'))
+        self.workflow.add_job(Job('new_node'))
         with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
             self.workflow.node_set
             update_node_ids.assert_called_once()
 
-    def test_adding_node_requires_resolution(self):
-        self.workflow._node_ids_resolved = True
-        self.workflow.add_job(Job('new_node'))
-        self.assertFalse(self.workflow._node_ids_resolved)
+    def test_complete_node_set_does_not_mask_unresolved_nodes(self):
+        child = self.resolved_node('child')
+        self.workflow.add_node(child)
+        child.add_parent(Node(Job('parent')))
 
-    def test_new_workflow_has_unresolved_node_ids(self):
-        self.assertFalse(Workflow('fresh', config='', max_jobs=None)._node_ids_resolved)
+        with mock.patch.object(Workflow, '_execute', return_value=('', None)):
+            self.workflow.node_set
+            self.workflow.complete_node_set()
 
-    def test_node_added_during_resolution_leaves_ids_unresolved(self):
-        def add_node_then_return(*args, **kwargs):
-            self.workflow.add_job(Job('late_node'))
-            return '', None
-
-        with mock.patch.object(Workflow, '_execute', side_effect=add_node_then_return):
-            self.workflow.update_node_ids()
-
-        self.assertFalse(self.workflow._node_ids_resolved)
+        with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
+            self.workflow.node_set
+            update_node_ids.assert_called_once()
 
     def test_concurrent_add_node_does_not_break_resolution(self):
         for i in range(200):
