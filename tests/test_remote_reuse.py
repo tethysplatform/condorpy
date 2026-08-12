@@ -13,6 +13,7 @@ from unittest import mock
 import paramiko
 
 from condorpy import Job, Workflow
+from condorpy.htcondor_object_base import HTCondorObjectBase
 from condorpy.node import Node
 from condorpy.remote_utils import RemoteClient, load_private_key
 import condorpy.remote_utils as remote_utils
@@ -172,6 +173,43 @@ class TestNodeIdResolution(unittest.TestCase):
                 self.workflow.node_statuses_by_cluster_id()
 
         warning.assert_not_called()
+
+    def multiproc_node(self, name, num_jobs, cluster_id):
+        job = Job(name)
+        job.num_jobs = num_jobs
+        job._cluster_id = cluster_id
+        return Node(job)
+
+    def test_disagreeing_procs_are_reported_as_various(self):
+        self.workflow.add_node(self.multiproc_node('mp', 2, 500))
+
+        with mock.patch.object(Workflow, '_execute', return_value=('500;;;2+++500;;;1+++', None)):
+            statuses = self.workflow.node_statuses_by_cluster_id()
+
+        self.assertEqual({500: 'Various'}, statuses)
+
+    def test_agreeing_procs_are_reported_as_their_shared_status(self):
+        self.workflow.add_node(self.multiproc_node('mp', 2, 500))
+
+        with mock.patch.object(Workflow, '_execute', return_value=('500;;;2+++500;;;2+++', None)):
+            statuses = self.workflow.node_statuses_by_cluster_id()
+
+        self.assertEqual({500: 'Running'}, statuses)
+
+    def test_multiproc_node_counts_match_the_per_node_path(self):
+        self.workflow.add_node(self.multiproc_node('mp', 2, 500))
+
+        def respond(args, **kwargs):
+            if 'DAGManJobID' in args[0]:
+                return '500;;;2+++500;;;1+++', None
+            return '21', None
+
+        with mock.patch.object(HTCondorObjectBase, '_execute', side_effect=respond):
+            counts = self.workflow._update_statuses()
+
+        self.assertEqual(1, counts['Unexpanded'])
+        self.assertEqual(0, counts['Idle'])
+        self.assertEqual(0, counts['Running'])
 
     def test_concurrent_add_node_does_not_break_resolution(self):
         for i in range(200):

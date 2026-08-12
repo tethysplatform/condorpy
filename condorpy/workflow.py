@@ -218,9 +218,16 @@ class Workflow(HTCondorObjectBase):
                 discarded += 1
                 continue
             try:
-                statuses[int(parts[0])] = CONDOR_JOB_STATUSES[int(parts[1])]
+                cluster_id = int(parts[0])
+                status = CONDOR_JOB_STATUSES[int(parts[1])]
             except (ValueError, KeyError):
                 discarded += 1
+                continue
+            # A job with `queue N` puts N procs under one cluster id. Assigning
+            # here would keep whichever record parsed last and report one proc's
+            # status as the whole job's; Job.status calls that case 'Various'.
+            if statuses.setdefault(cluster_id, status) != status:
+                statuses[cluster_id] = 'Various'
 
         # A node missing from this map does not fail loudly -- the caller either
         # falls back to a per-node query or leaves the node's status untouched --
@@ -255,10 +262,16 @@ class Workflow(HTCondorObjectBase):
         for node in self.node_set:
             job = node.job
             try:
-                if by_cluster_id is not None:
+                # The batched query cannot reproduce Job.status for a multi-proc
+                # job: that compares the per-proc counts against num_jobs, so it
+                # needs to know how many procs were expected, which the queue
+                # alone does not say. Those nodes keep the per-node query.
+                if by_cluster_id is not None and job.num_jobs == 1:
                     job_status = by_cluster_id.get(job.cluster_id)
                     if job_status is None:
                         job_status = 'Unexpanded' if job.cluster_id == job.NULL_CLUSTER_ID else job.status
+                elif job.cluster_id == job.NULL_CLUSTER_ID:
+                    job_status = 'Unexpanded'
                 else:
                     job_status = job.status
                 status_dict[job_status] += 1
