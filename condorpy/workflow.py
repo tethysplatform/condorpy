@@ -6,6 +6,7 @@
 # the terms of the BSD 2-Clause License. A copy of the BSD 2-Clause License
 # should have been distributed with this file.
 import os
+import threading
 
 from condorpy.static import CONDOR_JOB_STATUSES
 
@@ -37,6 +38,10 @@ class Workflow(HTCondorObjectBase):
         self._max_jobs = max_jobs
         self._dag_file = ""
         self._node_set = set()
+        self._node_ids_resolved = False
+        # Guards _node_set membership and _node_ids_resolved together. Never held
+        # across a remote call; see update_node_ids.
+        self._node_ids_lock = threading.Lock()
         super(Workflow, self).__init__(host, username, password, private_key, private_key_pass, remote_input_files, working_directory)
 
     def __str__(self):
@@ -106,7 +111,7 @@ class Workflow(HTCondorObjectBase):
     def node_set(self):
         """
         """
-        if self.cluster_id != self.NULL_CLUSTER_ID and not getattr(self, '_node_ids_resolved', False):
+        if self.cluster_id != self.NULL_CLUSTER_ID and not self._node_ids_resolved:
             self.update_node_ids()
         return self._node_set
 
@@ -224,6 +229,10 @@ class Workflow(HTCondorObjectBase):
         try:
             by_cluster_id = self.node_statuses_by_cluster_id(sub_job_num=sub_job_num)
         except (HTCondorError, KeyError, ValueError):
+            # Logged every time so a pool that never takes the batched path is
+            # visible; without this the only symptom is that polling stays slow.
+            log.warning('Batched node status query failed for dag %s; falling back to '
+                        'per-node queries.', self.cluster_id, exc_info=True)
             by_cluster_id = None
 
         for node in self.node_set:
@@ -273,8 +282,14 @@ class Workflow(HTCondorObjectBase):
             # Split into one line per job
             jobs_out = out.split(job_delimiter)
 
+            # Iterate a snapshot: add_node may mutate _node_set from another
+            # thread, which would otherwise raise "Set changed size during
+            # iteration" partway through matching.
+            with self._node_ids_lock:
+                nodes = list(self._node_set)
+
             # Match node to cluster id using combination of cmd and arguments
-            for node in self._node_set:
+            for node in nodes:
                 job = node.job
 
                 # Skip jobs that already have cluster id defined
@@ -310,10 +325,13 @@ class Workflow(HTCondorObjectBase):
                         break
 
             # Every node that could be resolved has been; don't re-query on each
-            # node_set access (see the node_set property).
-            self._node_ids_resolved = all(
-                node.job.cluster_id != node.job.NULL_CLUSTER_ID for node in self._node_set
-            )
+            # node_set access (see the node_set property). Computed over the live
+            # set rather than the snapshot, and under the lock, so a node added
+            # during the query above leaves the flag False instead of being lost.
+            with self._node_ids_lock:
+                self._node_ids_resolved = all(
+                    node.job.cluster_id != node.job.NULL_CLUSTER_ID for node in self._node_set
+                )
 
         except ValueError as e:
             log.warning(str(e))
@@ -322,9 +340,10 @@ class Workflow(HTCondorObjectBase):
         """
         """
         assert isinstance(node, Node)
-        self._node_set.add(node)
-        # A new node has no cluster id yet, so ids must be resolved again.
-        self._node_ids_resolved = False
+        with self._node_ids_lock:
+            self._node_set.add(node)
+            # A new node has no cluster id yet, so ids must be resolved again.
+            self._node_ids_resolved = False
 
     def add_job(self, job):
         """

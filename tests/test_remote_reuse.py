@@ -4,6 +4,8 @@ Tests for private key caching, remote client reuse, and node id resolution.
 import os
 import shutil
 import tempfile
+import sys
+import threading
 import unittest
 from unittest import mock
 
@@ -100,6 +102,53 @@ class TestNodeIdResolution(unittest.TestCase):
         self.workflow._node_ids_resolved = True
         self.workflow.add_job(Job('new_node'))
         self.assertFalse(self.workflow._node_ids_resolved)
+
+    def test_new_workflow_has_unresolved_node_ids(self):
+        self.assertFalse(Workflow('fresh', config='', max_jobs=None)._node_ids_resolved)
+
+    def test_node_added_during_resolution_leaves_ids_unresolved(self):
+        def add_node_then_return(*args, **kwargs):
+            self.workflow.add_job(Job('late_node'))
+            return '', None
+
+        with mock.patch.object(Workflow, '_execute', side_effect=add_node_then_return):
+            self.workflow.update_node_ids()
+
+        self.assertFalse(self.workflow._node_ids_resolved)
+
+    def test_concurrent_add_node_does_not_break_resolution(self):
+        for i in range(200):
+            self.workflow.add_job(Job('node_%d' % i))
+        errors = []
+        stop = threading.Event()
+
+        def add_nodes():
+            i = 0
+            while not stop.is_set():
+                try:
+                    self.workflow.add_job(Job('concurrent_%d' % i))
+                except Exception as e:
+                    errors.append(e)
+                    return
+                i += 1
+
+        adder = threading.Thread(target=add_nodes)
+        switch_interval = sys.getswitchinterval()
+        sys.setswitchinterval(1e-6)
+        try:
+            with mock.patch.object(Workflow, '_execute', return_value=('', None)):
+                adder.start()
+                try:
+                    for _ in range(200):
+                        self.workflow.update_node_ids()
+                except Exception as e:
+                    errors.append(e)
+                stop.set()
+                adder.join()
+        finally:
+            sys.setswitchinterval(switch_interval)
+
+        self.assertEqual([], errors)
 
 
 if __name__ == '__main__':
