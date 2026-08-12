@@ -78,6 +78,25 @@ class TestPrivateKeyCache(unittest.TestCase):
 
         self.assertIsNot(first_key, job.scheduler.private_key)
 
+    def test_rotated_key_file_keeps_the_remote_working_directory(self):
+        job = Job('rotating')
+        job.set_scheduler('host', 'user', private_key=self.key_path)
+        remote_id = job._remote_id
+
+        self.rotate_key(9999)
+        job.set_scheduler('host', 'user', private_key=self.key_path)
+
+        self.assertEqual(remote_id, job._remote_id)
+
+    def test_new_host_gets_a_new_remote_working_directory(self):
+        job = Job('moving')
+        job.set_scheduler('host', 'user', private_key=self.key_path)
+        remote_id = job._remote_id
+
+        job.set_scheduler('other-host', 'user', private_key=self.key_path)
+
+        self.assertNotEqual(remote_id, job._remote_id)
+
 
 class TestRemoteClientReuse(unittest.TestCase):
 

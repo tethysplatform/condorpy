@@ -90,8 +90,13 @@ class HTCondorObjectBase(object):
             # job's inputs and outputs in a directory nothing looks at again.
             self._remote_id = getattr(self, '_remote_id', None) or uuid.uuid4().hex
             return
+        # The remote working directory belongs to the host, not to the credentials
+        # used to reach it, so replacing the client for a rotated key or a changed
+        # password must not strand the job's files in a directory nothing reads.
+        same_host = existing is not None and existing.host == host and existing.port == port
         self._remote = RemoteClient(host, username, password, private_key, private_key_pass, port=port)
-        self._remote_id = uuid.uuid4().hex
+        if not (same_host and getattr(self, '_remote_id', None)):
+            self._remote_id = uuid.uuid4().hex
 
     @property
     def remote_input_files(self):
