@@ -230,6 +230,65 @@ class TestNodeIdResolution(unittest.TestCase):
         self.assertEqual(0, counts['Idle'])
         self.assertEqual(0, counts['Running'])
 
+    def batched_and_per_node(self, batched_out, per_node_out='2'):
+        def respond(args, **kwargs):
+            if 'DAGManJobID' in args[0]:
+                return batched_out, None
+            return per_node_out, None
+        return respond
+
+    def test_statuses_come_from_one_query_when_the_batch_succeeds(self):
+        for i, cluster_id in enumerate((10, 11, 12)):
+            self.workflow.add_node(self.resolved_node('n%d' % i, cluster_id=cluster_id))
+
+        respond = self.batched_and_per_node('10;;;2+++11;;;1+++12;;;4+++')
+        with mock.patch.object(HTCondorObjectBase, '_execute', side_effect=respond) as ex:
+            counts = self.workflow._update_statuses()
+
+        self.assertEqual(1, ex.call_count)
+        self.assertEqual(1, counts['Running'])
+        self.assertEqual(1, counts['Idle'])
+        self.assertEqual(1, counts['Completed'])
+
+    def test_statuses_fall_back_to_per_node_queries_when_the_batch_fails(self):
+        for i, cluster_id in enumerate((10, 11)):
+            self.workflow.add_node(self.resolved_node('n%d' % i, cluster_id=cluster_id))
+
+        def respond(args, **kwargs):
+            if 'DAGManJobID' in args[0]:
+                return '', 'condor_q: command not found'
+            return '2', None
+
+        with mock.patch.object(HTCondorObjectBase, '_execute', side_effect=respond) as ex:
+            counts = self.workflow._update_statuses()
+
+        self.assertEqual(3, ex.call_count)
+        self.assertEqual(2, counts['Running'])
+
+    def test_unexpanded_node_is_counted_without_a_per_node_query(self):
+        self.workflow.add_node(self.resolved_node('done', cluster_id=10))
+        self.workflow.add_job(Job('not_yet'))
+
+        respond = self.batched_and_per_node('10;;;2+++')
+        with mock.patch.object(HTCondorObjectBase, '_execute', side_effect=respond) as ex:
+            counts = self.workflow._update_statuses()
+
+        self.assertEqual(2, ex.call_count)
+        self.assertEqual(1, counts['Running'])
+        self.assertEqual(1, counts['Unexpanded'])
+
+    def test_resolved_node_absent_from_the_batch_falls_back_to_its_own_query(self):
+        self.workflow.add_node(self.resolved_node('present', cluster_id=10))
+        self.workflow.add_node(self.resolved_node('absent', cluster_id=11))
+
+        respond = self.batched_and_per_node('10;;;2+++', per_node_out='4')
+        with mock.patch.object(HTCondorObjectBase, '_execute', side_effect=respond) as ex:
+            counts = self.workflow._update_statuses()
+
+        self.assertEqual(2, ex.call_count)
+        self.assertEqual(1, counts['Running'])
+        self.assertEqual(1, counts['Completed'])
+
     def test_concurrent_add_node_does_not_break_resolution(self):
         for i in range(200):
             self.workflow.add_job(Job('node_%d' % i))
