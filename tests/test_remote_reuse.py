@@ -1,6 +1,7 @@
 '''
 Tests for private key caching, remote client reuse, and node id resolution.
 '''
+import logging
 import os
 import shutil
 import tempfile
@@ -55,6 +56,26 @@ class TestPrivateKeyCache(unittest.TestCase):
         a = RemoteClient('host', 'user', private_key=self.key_path)
         b = RemoteClient('host', 'user', private_key=self.key_path)
         self.assertIs(a.private_key, b.private_key)
+
+    def rotate_key(self, mtime):
+        paramiko.RSAKey.generate(2048).write_private_key_file(self.key_path)
+        os.utime(self.key_path, (mtime, mtime))
+
+    def test_cache_keeps_one_entry_per_key_file(self):
+        for i in range(5):
+            self.rotate_key(i * 1000)
+            load_private_key(self.key_path)
+        self.assertEqual(1, len(remote_utils._private_key_cache))
+
+    def test_rotated_key_file_replaces_a_reused_client(self):
+        job = Job('rotating')
+        job.set_scheduler('host', 'user', private_key=self.key_path)
+        first_key = job.scheduler.private_key
+
+        self.rotate_key(9999)
+        job.set_scheduler('host', 'user', private_key=self.key_path)
+
+        self.assertIsNot(first_key, job.scheduler.private_key)
 
 
 class TestRemoteClientReuse(unittest.TestCase):
@@ -130,6 +151,27 @@ class TestNodeIdResolution(unittest.TestCase):
         with mock.patch.object(Workflow, 'update_node_ids') as update_node_ids:
             self.workflow.node_set
             update_node_ids.assert_called_once()
+
+    def test_unparseable_status_records_are_logged(self):
+        self.workflow.add_node(self.resolved_node('a', cluster_id=100))
+        out = '100;;;2+++GARBAGE_NO_DELIMITER+++999;;;notanint+++'
+
+        with mock.patch.object(Workflow, '_execute', return_value=(out, None)):
+            with self.assertLogs('condorpy', level='WARNING') as logged:
+                statuses = self.workflow.node_statuses_by_cluster_id()
+
+        self.assertEqual({100: 'Running'}, statuses)
+        self.assertTrue(any('2' in line for line in logged.output))
+
+    def test_fully_parseable_status_records_are_not_logged(self):
+        self.workflow.add_node(self.resolved_node('a', cluster_id=100))
+        log = logging.getLogger('condorpy')
+
+        with mock.patch.object(Workflow, '_execute', return_value=('100;;;2+++', None)):
+            with mock.patch.object(log, 'warning') as warning:
+                self.workflow.node_statuses_by_cluster_id()
+
+        warning.assert_not_called()
 
     def test_concurrent_add_node_does_not_break_resolution(self):
         for i in range(200):

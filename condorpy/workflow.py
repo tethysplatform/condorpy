@@ -209,14 +209,26 @@ class Workflow(HTCondorObjectBase):
             raise HTCondorError(err)
 
         statuses = dict()
+        discarded = 0
         for record in out.replace('"', '').split(job_delimiter):
             parts = [p for p in record.strip().split(attr_delimiter) if p != '']
+            if not parts:
+                continue
             if len(parts) < 2:
+                discarded += 1
                 continue
             try:
                 statuses[int(parts[0])] = CONDOR_JOB_STATUSES[int(parts[1])]
             except (ValueError, KeyError):
-                continue
+                discarded += 1
+
+        # A node missing from this map does not fail loudly -- the caller either
+        # falls back to a per-node query or leaves the node's status untouched --
+        # so a change in condor_q's output would otherwise be invisible.
+        if discarded:
+            log.warning('Discarded %d unparseable status record(s) for dag %s; '
+                        '%d node(s) parsed.', discarded, dag_id, len(statuses))
+
         return statuses
 
     def _update_statuses(self, sub_job_num=None):
