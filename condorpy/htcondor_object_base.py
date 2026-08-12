@@ -85,6 +85,9 @@ class HTCondorObjectBase(object):
         existing = getattr(self, '_remote', None)
         if existing is not None and existing.matches(host, username, password, private_key,
                                                      private_key_pass, port):
+            # Preserve _remote_id (names the remote working directory) and skip client
+            # replacement to retain the cached SSH transport. A new id would strand the
+            # job's inputs and outputs in a directory nothing looks at again.
             self._remote_id = getattr(self, '_remote_id', None) or uuid.uuid4().hex
             return
         self._remote = RemoteClient(host, username, password, private_key, private_key_pass, port=port)
