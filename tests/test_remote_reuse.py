@@ -237,14 +237,14 @@ class TestNodeIdResolution(unittest.TestCase):
         stop = threading.Event()
 
         def add_nodes():
-            i = 0
-            while not stop.is_set():
+            for i in range(2000):
+                if stop.is_set():
+                    return
                 try:
                     self.workflow.add_job(Job('concurrent_%d' % i))
                 except Exception as e:
                     errors.append(e)
                     return
-                i += 1
 
         adder = threading.Thread(target=add_nodes)
         switch_interval = sys.getswitchinterval()
@@ -255,6 +255,7 @@ class TestNodeIdResolution(unittest.TestCase):
                 try:
                     for _ in range(200):
                         self.workflow.update_node_ids()
+                        self.workflow._has_unresolved_nodes()
                 except Exception as e:
                     errors.append(e)
                 stop.set()

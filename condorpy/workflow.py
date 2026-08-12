@@ -118,7 +118,7 @@ class Workflow(HTCondorObjectBase):
         only the first of those invalidates goes stale on the second.
         """
         return any(node.job.cluster_id == node.job.NULL_CLUSTER_ID
-                   for node in self._node_set)
+                   for node in self._node_set.copy())
 
     @property
     def dag_file(self):
@@ -312,9 +312,10 @@ class Workflow(HTCondorObjectBase):
             # Split into one line per job
             jobs_out = out.split(job_delimiter)
 
-            # Bind once. add_node rebinds _node_set rather than mutating it, so
-            # this reference cannot change size underneath the loop.
-            nodes = self._node_set
+            # Snapshot: a concurrent add_node would otherwise raise "Set changed
+            # size during iteration" partway through matching. set.copy() runs
+            # entirely in C, so it cannot itself be interrupted mid-copy.
+            nodes = self._node_set.copy()
 
             # Match node to cluster id using combination of cmd and arguments
             for node in nodes:
@@ -359,9 +360,9 @@ class Workflow(HTCondorObjectBase):
         """
         """
         assert isinstance(node, Node)
-        # Rebind rather than mutate: a concurrent reader that already bound
-        # _node_set then keeps a set that cannot change size underneath it.
-        self._node_set = self._node_set | {node}
+        # set.add is atomic; rebinding to a union is a read-modify-write that can
+        # drop a concurrent writer's node, and copies the whole set on every add.
+        self._node_set.add(node)
 
     def add_job(self, job):
         """
