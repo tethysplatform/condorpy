@@ -37,7 +37,7 @@ Installing from Source
 ======================
 ::
 
-    $ python setup.py install
+    $ pip install .
 
 
 Getting Started
