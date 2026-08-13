@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.backends.legacy:build"
+
+[project]
+name = "condorpy"
+dynamic = ["version"]
+description = "A Python wrapper for HTCondor's cli"
+readme = "README.rst"
+license = { text = "BSD 2-Clause License" }
+authors = [
+    { name = "Scott Christensen", email = "sdc50@byu.net" },
+]
+keywords = ["htcondor", "distributed-computing", "job-scheduling"]
+dependencies = ["scp", "paramiko"]
+
+[project.urls]
+Homepage = "http://tethysplatform.org/condorpy/"
+
+[tool.setuptools.packages.find]
+where = ["."]
+
+[tool.setuptools_scm]
