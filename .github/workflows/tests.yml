@@ -30,5 +30,8 @@ jobs:
           cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
           chmod 600 ~/.ssh/authorized_keys
 
-      - name: Run tests
-        run: python -m unittest tests.test_job tests.test_node tests.test_templates tests.test_workflow tests.test_remote_reuse
+      - name: Run tests with coverage
+        run: python -m coverage run -m unittest tests.test_job tests.test_node tests.test_templates tests.test_workflow tests.test_remote_reuse
+
+      - name: Print coverage report
+        run: python -m coverage report
