@@ -106,9 +106,19 @@ class Workflow(HTCondorObjectBase):
     def node_set(self):
         """
         """
-        if self.cluster_id != self.NULL_CLUSTER_ID:
+        if self.cluster_id != self.NULL_CLUSTER_ID and self._has_unresolved_nodes():
             self.update_node_ids()
         return self._node_set
+
+    def _has_unresolved_nodes(self):
+        """Whether any node still lacks a cluster id.
+
+        Derived from the nodes rather than cached in a flag: _node_set is mutated
+        by add_node and rebound wholesale by complete_node_set, and a flag that
+        only the first of those invalidates goes stale on the second.
+        """
+        return any(node.job.cluster_id == node.job.NULL_CLUSTER_ID
+                   for node in self._node_set.copy())
 
     @property
     def dag_file(self):
@@ -177,6 +187,57 @@ class Workflow(HTCondorObjectBase):
 
         return key
 
+    def node_statuses_by_cluster_id(self, sub_job_num=None):
+        """
+        Get the status of every node in the DAG with a single remote query.
+        Parameters:
+            sub_job_num (int, optional): The sub-job number of the DAG.
+        Returns:
+            dict: cluster_id (int) -> condor status name (str), e.g. {12: 'Running'}
+        """
+        dag_id = '%s.%s' % (self.cluster_id, sub_job_num) if sub_job_num else str(self.cluster_id)
+        job_delimiter = '+++'
+        attr_delimiter = ';;;'
+        format = [
+            '-format', '"%d' + attr_delimiter + '"', 'ClusterId',
+            '-format', '"%d' + job_delimiter + '"', 'JobStatus',
+        ]
+        cmd = ('condor_q -constraint DAGManJobID=={0} {1} && '
+               'condor_history -constraint DAGManJobID=={0} {1}').format(dag_id, ' '.join(format))
+        out, err = self._execute([cmd], shell=True, run_in_job_dir=False)
+        if err:
+            raise HTCondorError(err)
+
+        statuses = dict()
+        discarded = 0
+        for record in out.replace('"', '').split(job_delimiter):
+            parts = [p for p in record.strip().split(attr_delimiter) if p != '']
+            if not parts:
+                continue
+            if len(parts) < 2:
+                discarded += 1
+                continue
+            try:
+                cluster_id = int(parts[0])
+                status = CONDOR_JOB_STATUSES[int(parts[1])]
+            except (ValueError, KeyError):
+                discarded += 1
+                continue
+            # A job with `queue N` puts N procs under one cluster id. Assigning
+            # here would keep whichever record parsed last and report one proc's
+            # status as the whole job's; Job.status calls that case 'Various'.
+            if statuses.setdefault(cluster_id, status) != status:
+                statuses[cluster_id] = 'Various'
+
+        # A node missing from this map does not fail loudly -- the caller either
+        # falls back to a per-node query or leaves the node's status untouched --
+        # so a change in condor_q's output would otherwise be invisible.
+        if discarded:
+            log.warning('Discarded %d unparseable status record(s) for dag %s; '
+                        '%d node(s) parsed.', discarded, dag_id, len(statuses))
+
+        return statuses
+
     def _update_statuses(self, sub_job_num=None):
         """
         Update statuses of jobs nodes in workflow.
@@ -187,10 +248,32 @@ class Workflow(HTCondorObjectBase):
         for val in CONDOR_JOB_STATUSES.values():
             status_dict[val] = 0
 
+        # One batched query for the whole DAG; fall back to per-node queries only
+        # if the batched form fails (e.g. an older schedd).
+        try:
+            by_cluster_id = self.node_statuses_by_cluster_id(sub_job_num=sub_job_num)
+        except (HTCondorError, KeyError, ValueError):
+            # Logged every time so a pool that never takes the batched path is
+            # visible; without this the only symptom is that polling stays slow.
+            log.warning('Batched node status query failed for dag %s; falling back to '
+                        'per-node queries.', self.cluster_id, exc_info=True)
+            by_cluster_id = None
+
         for node in self.node_set:
             job = node.job
             try:
-                job_status = job.status
+                # The batched query cannot reproduce Job.status for a multi-proc
+                # job: that compares the per-proc counts against num_jobs, so it
+                # needs to know how many procs were expected, which the queue
+                # alone does not say. Those nodes keep the per-node query.
+                if by_cluster_id is not None and job.num_jobs == 1:
+                    job_status = by_cluster_id.get(job.cluster_id)
+                    if job_status is None:
+                        job_status = 'Unexpanded' if job.cluster_id == job.NULL_CLUSTER_ID else job.status
+                elif job.cluster_id == job.NULL_CLUSTER_ID:
+                    job_status = 'Unexpanded'
+                else:
+                    job_status = job.status
                 status_dict[job_status] += 1
             except (KeyError, HTCondorError):
                 status_dict['Unexpanded'] += 1
@@ -229,8 +312,13 @@ class Workflow(HTCondorObjectBase):
             # Split into one line per job
             jobs_out = out.split(job_delimiter)
 
+            # Snapshot: a concurrent add_node would otherwise raise "Set changed
+            # size during iteration" partway through matching. set.copy() runs
+            # entirely in C, so it cannot itself be interrupted mid-copy.
+            nodes = self._node_set.copy()
+
             # Match node to cluster id using combination of cmd and arguments
-            for node in self._node_set:
+            for node in nodes:
                 job = node.job
 
                 # Skip jobs that already have cluster id defined
@@ -272,6 +360,8 @@ class Workflow(HTCondorObjectBase):
         """
         """
         assert isinstance(node, Node)
+        # set.add is atomic; rebinding to a union is a read-modify-write that can
+        # drop a concurrent writer's node, and copies the whole set on every add.
         self._node_set.add(node)
 
     def add_job(self, job):

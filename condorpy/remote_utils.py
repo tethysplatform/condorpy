@@ -1,7 +1,45 @@
 import os
+import threading
 
 import paramiko
 import scp
+
+
+_private_key_cache = {}
+_private_key_cache_lock = threading.Lock()
+
+
+def _key_file_mtime(filename):
+    """The key file's mtime, or None if it cannot be read."""
+    try:
+        return os.path.getmtime(filename)
+    except OSError:
+        return None
+
+
+def load_private_key(filename, password=None):
+    """Load an RSA private key, caching the decrypted result.
+
+    The entry is keyed on the file and passphrase and holds the mtime alongside
+    the key, so a rotated file replaces its entry rather than adding one. Keying
+    on the mtime as well would leave an entry -- a decrypted key and the
+    passphrase that opened it -- resident for every rotation the process sees.
+
+    Args:
+        filename (str): path to the private key file.
+        password (str, optional): passphrase for the private key.
+
+    Returns:
+        paramiko.RSAKey: the decrypted key.
+    """
+    mtime = _key_file_mtime(filename)
+    cache_key = (filename, password)
+    with _private_key_cache_lock:
+        cached_mtime, key = _private_key_cache.get(cache_key, (None, None))
+        if key is None or cached_mtime != mtime:
+            key = paramiko.RSAKey.from_private_key_file(filename=filename, password=password)
+            _private_key_cache[cache_key] = (mtime, key)
+        return key
 
 
 class RemoteClient(object):
@@ -15,13 +53,38 @@ class RemoteClient(object):
         self.host = host
         self.username = username
         self.password = password
+        self.private_key_path = None
+        self.private_key_pass = private_key_pass
+        self.private_key_mtime = None
         if private_key:
             private_key = os.path.expanduser(private_key)
-            self.private_key = paramiko.RSAKey.from_private_key_file(filename=private_key, password=private_key_pass)
+            self.private_key_path = private_key
+            self.private_key_mtime = _key_file_mtime(private_key)
+            self.private_key = load_private_key(private_key, private_key_pass)
         self.port = port
         self._transport = None
         self._scp = None
         self._sftp = None
+
+    def matches(self, host, username, password, private_key, private_key_pass, port):
+        """True if this client already targets the given connection parameters.
+
+        The key file's mtime is part of the comparison: this client decrypted its
+        key when it was built, so a rotated key file means it holds a stale one and
+        must be replaced rather than reused. Comparing only the path would let the
+        cache in load_private_key pick up the rotation while every reused client
+        went on presenting the old key.
+        """
+        key_path = os.path.expanduser(private_key) if private_key else None
+        return (
+            self.host == host
+            and self.username == username
+            and self.password == password
+            and self.port == port
+            and self.private_key_path == key_path
+            and self.private_key_pass == private_key_pass
+            and self.private_key_mtime == (_key_file_mtime(key_path) if key_path else None)
+        )
 
     def __del__(self):
         self.close()
