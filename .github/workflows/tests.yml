@@ -22,13 +22,17 @@ jobs:
       - name: Install package
         run: python -m pip install -e . coverage
 
-      - name: Prepare local SSH key
+      - name: Prepare local SSH server and key
         run: |
+          sudo apt-get update
+          sudo apt-get install -y openssh-server
+          sudo service ssh start
           mkdir -p ~/.ssh
           chmod 700 ~/.ssh
           ssh-keygen -t rsa -N "" -f ~/.ssh/id_rsa
-          cat ~/.ssh/id_rsa.pub >> ~/.ssh/authorized_keys
+          cat ~/.ssh/id_rsa.pub > ~/.ssh/authorized_keys
           chmod 600 ~/.ssh/authorized_keys
+          ssh -o StrictHostKeyChecking=no localhost 'echo localhost ssh ok'
 
       - name: Run tests with coverage
         run: python -m coverage run -m unittest tests.test_job tests.test_node tests.test_templates tests.test_workflow tests.test_remote_reuse
