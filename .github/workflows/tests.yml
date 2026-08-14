@@ -35,7 +35,7 @@ jobs:
           ssh -o StrictHostKeyChecking=no localhost 'echo localhost ssh ok'
 
       - name: Run tests with coverage
-        run: python -m coverage run -m unittest tests.test_job tests.test_node tests.test_templates tests.test_workflow tests.test_remote_reuse
+        run: python -m coverage run -m unittest discover
 
       - name: Print coverage report
         run: python -m coverage report
