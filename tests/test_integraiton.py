@@ -4,6 +4,7 @@ from condorpy import Templates
 import os
 import shutil
 
+@unittest.skipUnless(shutil.which('condor_submit'), 'condor_submit not found')
 class TestIntegration(unittest.TestCase):
 
     expected = None

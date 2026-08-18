@@ -2,6 +2,7 @@
 *.pyc
 *.pyo
 .pydevproject
+.coverage
 test/.coverage
 .activate
 .vscode
